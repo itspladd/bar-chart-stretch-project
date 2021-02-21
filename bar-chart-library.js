@@ -5,7 +5,11 @@ $(document).ready(function() {
       height:100,
       barColour: "green"
     }
-    drawBarChart(1,options,$("#barChartBox"));
+
+    let data = [
+      {values: [1], labels: ["Barts"], barColors: ["green"], labelColors: ["blue"]}
+    ];
+    drawBarChart(data,options,$("#barChartBox"));
   });
   //Uncomment this line if you suspect that the entire JS file isn't being loaded.
   //alert("bar-chart-library.js loaded!");
@@ -13,19 +17,28 @@ $(document).ready(function() {
 
 
 const drawBarChart = function (data, options, element) {
-  //Expects an array of arrays for data, and object for options, and a DOM or jQuery element for element
+  //Expects an array of objects for data, and object for options, and a DOM or jQuery element for element
+  //Structure of data input:
+  /*data = [
+    {values: [int1, int2, ...], labels: ["label1", "label2", ...], barColors: ["color1", "color2"], labelColors: ["color1", "color2"]},
+    {values: [int1, int2, ...], labels: ["label1", "label2", ...], barColors: ["color1", "color2"], labelColors: ["color1", "color2"]},
+    etc
+  ]
+  Each object is a single bar. The values array can have one or multiple values, which will be the number of sections in that bar.
+  There
+  */
   const minWidth = 500;
   const minHeight = 500;
 
   options["width"] = options["width"] > minWidth ? options["width"] : minWidth;
   options["height"] = options["height"] > minHeight ? options["height"] : minHeight;
-  options["barColour"] = options["barColour"] || "fuschia";
-  options["labelColour"] = options["labelColour"] || "marmalade";
   options["barSpacing"] = options["barSpacing"] || 10;
   options["xLabel"] = options["xLabel"] || "X Axis";
   options["yLabel"] = options["yLabel"] || "Y Axis";
   options["title"] = options["title"] || "My Untitled Chart";
+  options["titleFont"] = options["titleFont"] || "Comic Sans";
+  options["titleFontSize"] = options["titleFontSize"] || 14;
 
     //The bar charts will be built out of a stack of divs within another div.
-  element.append(`<div style = "border: 1px black dashed; margin: auto; width: ${options.width}px; height: ${options.height}px">I'm a new div, inserted by drawBarChart! My width value is ${options.width}</div>`);
+  element.append(`<div class = "chart-container" style = "width: ${options.width}px; height: ${options.height}px">I'm a new div, inserted by drawBarChart! My width value is ${options.width}</div>`);
 }
