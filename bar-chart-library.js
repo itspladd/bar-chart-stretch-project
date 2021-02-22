@@ -50,7 +50,7 @@ const drawBarChart = function (data, options, element) {
   options["yLabel"] = options["yLabel"] || "Y Axis";
   options["title"] = options["title"] || "My Untitled Chart";
   options["titleFont"] = options["titleFont"] || "Comic Sans";
-  options["titleFontSize"] = options["titleFontSize"] || 14;
+  options["titleFontSize"] = options["titleFontSize"] || 20;
 
   //We'll set this programmatically later
   let titleHeight = 40;
@@ -61,7 +61,7 @@ const drawBarChart = function (data, options, element) {
   //Insert the y-axis. Height is based on height of chart bounds and
   $( ".chart-container" ).append(`<div class="y-axis">${options.yLabel}</div>`);
   $( ".chart-container" ).append(`<div class="x-axis">${options.xLabel}</div>`);
-  $( ".chart-container" ).append(`<div class="title-container">${options.title}</div>`);
+  $( ".chart-container" ).append(`<div class="title-container" style = "font-size:${options.titleFontSize}; height:${options.titleFontSize}">${options.title}</div>`);
 }
 
 const valueToBar = function () {
