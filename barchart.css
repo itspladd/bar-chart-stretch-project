@@ -1,7 +1,4 @@
-div {
-  background-color:skyblue;
-  border: 1px black dashed;
-}
+
 
 .chart-container {
   background-color: rgb(160, 160, 160);
@@ -10,6 +7,13 @@ div {
   position: relative;
 }
 
+.chart-container div {
+  background-color:skyblue;
+  border: 1px black dashed;
+  text-align: center;
+}
+
+
 .title-container {
   background-color:royalblue;
   text-align: center;
@@ -17,12 +21,10 @@ div {
 }
 
 .x-axis {
-  background-color:rgb(0, 214, 18);
   position: absolute;
 }
 
 .y-axis {
-  background-color:rgb(0, 214, 18);
   position: absolute;
 
   left:0;
