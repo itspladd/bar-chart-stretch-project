@@ -18,6 +18,7 @@ div {
 
 .x-axis {
   background-color:rgb(0, 214, 18);
+  position: absolute;
 }
 
 .y-axis {

@@ -54,15 +54,20 @@ const drawBarChart = function (data, options, element) {
 
   //Size variables that aren't included in options
   const titlePadding = 8;
+  const titleWidth = options.width - (titlePadding*2);
   const titleOffsetY = options.height - options.titleFontSize - (titlePadding * 2);
+  const axisFontSize = 12;
+  const axisPadding = 5;
+  const xAxisWidth = options.width - (axisPadding * 2);
+  const xAxisOffsetY = titleOffsetY - axisFontSize - (axisPadding * 2);
 
   //The bar charts will be built out of a stack of divs within another div.
   element.append(`<div class = "chart-container" style = "width: ${options.width}; height: ${options.height}px"></div>`);
 
   //Insert the y-axis. Height is based on height of chart bounds and
   $( ".chart-container" ).append(`<div class="y-axis">${options.yLabel}</div>`);
-  $( ".chart-container" ).append(`<div class="x-axis">${options.xLabel}</div>`);
-  $( ".chart-container" ).append(`<div class="title-container" style = "font-size:${options.titleFontSize}; padding:${titlePadding}; width: ${options.width - (titlePadding*2)}; height:${options.titleFontSize}; top:${titleOffsetY}" >${options.title}</div>`);
+  $( ".chart-container" ).append(`<div class="x-axis" style = "top: ${xAxisOffsetY}; width: ${xAxisWidth}; padding: ${axisPadding}">${options.xLabel}</div>`);
+  $( ".chart-container" ).append(`<div class="title-container" style = "font-size:${options.titleFontSize}; padding:${titlePadding}; width: ${titleWidth}; height:${options.titleFontSize}; top:${titleOffsetY}" >${options.title}</div>`);
 }
 
 const valueToBar = function () {
