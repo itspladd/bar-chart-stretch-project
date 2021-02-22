@@ -1,3 +1,8 @@
+div {
+  background-color:skyblue;
+  border: 1px black dashed;
+}
+
 .chart-container {
   background-color: rgb(160, 160, 160);
   border: 1px black dashed;
@@ -7,8 +12,8 @@
 
 .title-container {
   background-color:royalblue;
-  padding: 8;
   text-align: center;
+  position: absolute;
 }
 
 .x-axis {
@@ -27,5 +32,5 @@
 }
 
 .data-bar {
-  background
+  z-index: 1;
 }
