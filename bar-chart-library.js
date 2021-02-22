@@ -52,22 +52,24 @@ const drawBarChart = function (data, options, element) {
   options["titleFont"] = options["titleFont"] || "Comic Sans";
   options["titleFontSize"] = options["titleFontSize"] || 40;
 
-  //Size variables that aren't included in options
+  //Style variables that aren't included in options
   const titlePadding = 10;
-  const titleWidth = options.width - (titlePadding*2);
-  const titleOffsetY = options.height - options.titleFontSize - (titlePadding * 2);
   const axisFontSize = 16;
   const axisPadding = 10;
+
+  //Style variables that are calculated from other values
+  const titleWidth = options.width - (titlePadding*2);
+  const titleOffsetY = options.height - options.titleFontSize - (titlePadding * 2);
   const xAxisWidth = options.width - (axisPadding * 2);
   const xAxisOffsetY = titleOffsetY - axisFontSize - (axisPadding * 2);
   const yAxisOffsetY = xAxisOffsetY + 1;
   const yAxisWidth = xAxisOffsetY;
 
-  //The bar charts will be built out of a stack of divs within another div.
+  //This div is the container for all of this chart's elements.
   element.append(`<div class = "chart-container" style = "width: ${options.width}; height: ${options.height}px"></div>`);
 
-  //Insert the y-axis. Height is based on height of chart bounds and
-  $( ".chart-container" ).append(`<div class="y-axis" style = "top: ${yAxisOffsetY}; width: ${yAxisWidth}">${options.yLabel}</div>`);
+  //Insert the axes and the title.
+  $( ".chart-container" ).append(`<div class="y-axis" style = "top: ${yAxisOffsetY}; width: ${yAxisWidth}; padding: ${axisPadding}">${options.yLabel}</div>`);
   $( ".chart-container" ).append(`<div class="x-axis" style = "top: ${xAxisOffsetY}; width: ${xAxisWidth}; padding: ${axisPadding}">${options.xLabel}</div>`);
   $( ".chart-container" ).append(`<div class="title-container" style = "font-size:${options.titleFontSize}; padding:${titlePadding}; width: ${titleWidth}; height:${options.titleFontSize}; top:${titleOffsetY}" >${options.title}</div>`);
 }
