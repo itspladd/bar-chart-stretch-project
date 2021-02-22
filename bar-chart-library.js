@@ -1,15 +1,17 @@
 $(document).ready(function() {
-  $( "button" ).click(function( event ) {
-    let options = {
-      width:99,
-      height:100,
-      barColour: "green"
-    }
+  let options = {
+    width:99,
+    height:100,
+    barColour: "green"
+  }
 
-    let data = [
-      {values: [1], labels: ["Barts"], barColors: ["green"], labelColors: ["blue"]}
-    ];
-    drawBarChart(data,options,$("#barChartBox"));
+  let data = [
+    {values: [1], labels: ["Barts"], barColors: ["green"], labelColors: ["blue"]}
+  ];
+  drawBarChart(data,options,$("#barChartBox"));
+
+  $( "button" ).click(function( event ) {
+
   });
   //Uncomment this line if you suspect that the entire JS file isn't being loaded.
   //alert("bar-chart-library.js loaded!");
@@ -45,6 +47,8 @@ const drawBarChart = function (data, options, element) {
   //The bar charts will be built out of a stack of divs within another div.
   element.append(`<div class = "chart-container" style = "width: ${options.width}px; height: ${options.height}px"></div>`);
   $( ".chart-container" ).append(`<div class="y-axis">${options.yLabel}</div>`);
+  $( ".chart-container" ).append(`<div class="x-axis">${options.xLabel}</div>`);
+  $( ".chart-container" ).append(`<div class="title-container">${options.title}</div>`);
 }
 
 const valueToBar = function () {
