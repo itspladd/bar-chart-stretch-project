@@ -38,8 +38,18 @@ const drawBarChart = function (data, options, element) {
     etc
   ]
   Each object is a single bar. The values array can have one or multiple values, which will be the number of sections in that bar.
-  There
   */
+
+  if (!dataValid(data)) {
+    console.log("Error with data");
+  }
+  if (!optionsValid(options)) {
+    console.log("Error with options");
+  }
+  if (!elementValid(element)) {
+    console.log("Error with element");
+  }
+
   const minWidth = 500;
   const minHeight = 400;
 
@@ -50,7 +60,7 @@ const drawBarChart = function (data, options, element) {
   options["yLabel"] = options["yLabel"] || "Y Axis";
   options["title"] = options["title"] || "My Untitled Chart";
   options["titleFont"] = options["titleFont"] || "Comic Sans";
-  options["titleFontSize"] = options["titleFontSize"] || 40;
+  options["titleFontSize"] = options["titleFontSize"] || 30;
 
   //Style variables that aren't included in options
   const titlePadding = 10;
@@ -63,7 +73,7 @@ const drawBarChart = function (data, options, element) {
   const xAxisWidth = options.width - (axisPadding * 2);
   const xAxisOffsetY = titleOffsetY - axisFontSize - (axisPadding * 2);
   const yAxisOffsetY = xAxisOffsetY + 1;
-  const yAxisWidth = xAxisOffsetY;
+  const yAxisWidth = xAxisOffsetY - (axisPadding * 2);
 
   //This div is the container for all of this chart's elements.
   element.append(`<div class = "chart-container" style = "width: ${options.width}; height: ${options.height}px"></div>`);
@@ -76,4 +86,17 @@ const drawBarChart = function (data, options, element) {
 
 const valueToBar = function () {
 
+};
+
+//Placeholder function to check the options object for invalid values.
+const optionsValid = function (options) {
+  return true;
+}
+
+const dataValid = function (data) {
+  return true;
+}
+
+const elementValid = function (element) {
+  return true;
 }
