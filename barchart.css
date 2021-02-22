@@ -1,5 +1,12 @@
 .chart-container {
   background-color: rgb(160, 160, 160);
+  border: 1px black dashed;
+  margin: auto;
+  position: relative;
+}
+
+.title-container {
+  background-color:royalblue;
 }
 
 .x-axis {
@@ -8,8 +15,15 @@
 
 .y-axis {
   background-color:rgb(0, 214, 18);
+  position: absolute;
+
+  left:0;
+  transform: rotate(-90deg);
+  transform-origin: 0 0;
+
+  font: "Arial";
 }
 
 .data-bar {
-
+  background
 }
