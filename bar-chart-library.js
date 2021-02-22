@@ -39,9 +39,12 @@ const drawBarChart = function (data, options, element) {
   options["titleFont"] = options["titleFont"] || "Comic Sans";
   options["titleFontSize"] = options["titleFontSize"] || 14;
 
+  //We'll set this programmatically later
+  let titleHeight = 40;
+
   //The bar charts will be built out of a stack of divs within another div.
-  element.append(`<div class = "chart-container" style = "width: ${options.width}px; height: ${options.height}px">I'm a new div, inserted by drawBarChart! My width value is ${options.width}</div>`);
-  $( ".chart-container" ).append(`<div class="y-axis">Here's another div!</div>`);
+  element.append(`<div class = "chart-container" style = "width: ${options.width}px; height: ${options.height}px"></div>`);
+  $( ".chart-container" ).append(`<div class="y-axis">${options.yLabel}</div>`);
 }
 
 const valueToBar = function () {
