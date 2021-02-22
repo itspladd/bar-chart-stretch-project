@@ -1,3 +1,14 @@
+/* Options are as follows:
+  width: the width of the overall chart container div, including Y-axis div. Other div dimensions are calculated based on this value.
+  height: height of the overall chart container div, including X-axis and title divs. Other div dimensions are calculated based on this value.
+  barSpacing: spacing in between each bar. Calculated based on available width after y-axis is inserted and number of bars.
+  xLabel: label of the x-axis.
+  yLabel: label of the y-axis.
+  title: title of the chart.
+  titleFont: font of chart title.
+  titleFontSize: font size of chart title. title div height is calculated from this.
+*/
+
 $(document).ready(function() {
   let options = {
     width:99,
@@ -46,6 +57,8 @@ const drawBarChart = function (data, options, element) {
 
   //The bar charts will be built out of a stack of divs within another div.
   element.append(`<div class = "chart-container" style = "width: ${options.width}px; height: ${options.height}px"></div>`);
+
+  //Insert the y-axis. Height is based on height of chart bounds and
   $( ".chart-container" ).append(`<div class="y-axis">${options.yLabel}</div>`);
   $( ".chart-container" ).append(`<div class="x-axis">${options.xLabel}</div>`);
   $( ".chart-container" ).append(`<div class="title-container">${options.title}</div>`);
