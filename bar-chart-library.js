@@ -91,6 +91,31 @@ const drawBarChart = function (data, options, element) {
   $( ".chart-container" ).append(`<div class="title-container" style = "font-size:${options.titleFontSize}; padding:${titlePadding}; width: ${titleWidth}; height:${options.titleFontSize}; top:${titleOffsetY}">${options.title}</div>`);
 }
 
+const findStepSize2 = function (maxVal, numSteps, debug = false) {
+  //Finds a nice-looking number for the top line of the chart, based on the number you give it and the number of division lines ("steps") you want.
+  //Start by finding the rough size of the steps
+  let stepSize = maxVal / numSteps;
+  //Now find the power of 10 that this step falls into (i.e. 10 would be 1, 100 would be 2, 1000 would be 3)
+  let stepSizePower = Math.ceil(Math.log10(stepSize)) -1;
+  //If we end up with a 0, change it to a 1. Otherwise the stepSizeFactor will be a fraction.
+  stepSizePower = stepSizePower === 0 ? 1 : stepSizePower;
+  let stepSizeFactor = Math.pow(10, stepSizePower - 1);
+  //Now we find a nicer-looking number by moving the decimal point to the left until we're left with a two-digit number.
+  //Then we Math.ceil() that number and move the decimal point back.
+  let adjustedStepSize = Math.ceil(stepSize / stepSizeFactor) * stepSizeFactor;
+
+  if (debug) {
+    console.log(`Rough stepsize: ${stepSize}`);
+    console.log(`stepSizePower is ${stepSizePower}`);
+    console.log(`Dividing stepSize by ${stepSizeFactor} to get ${stepSize / stepSizeFactor} and rounding up...`);
+    console.log(`Adjusted step size: ${adjustedStepSize}. With ${numSteps} divisions, chart will look like:`);
+    for(let i = numSteps; i >= 0; i--) {
+      console.log(i * adjustedStepSize);
+    }
+  }
+  return adjustedStepSize;
+ }
+
 const valueToBar = function () {
 
 };
