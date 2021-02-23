@@ -91,7 +91,7 @@ const drawBarChart = function (data, options, element) {
   $( ".chart-container" ).append(`<div class="title-container" style = "font-size:${options.titleFontSize}; padding:${titlePadding}; width: ${titleWidth}; height:${options.titleFontSize}; top:${titleOffsetY}">${options.title}</div>`);
 }
 
-const findStepSize2 = function (maxVal, numSteps, debug = false) {
+const findStepSize = function (maxVal, numSteps, debug = false) {
   //Finds a nice-looking number for the top line of the chart, based on the number you give it and the number of division lines ("steps") you want.
   //Start by finding the rough size of the steps
   let stepSize = maxVal / numSteps;
