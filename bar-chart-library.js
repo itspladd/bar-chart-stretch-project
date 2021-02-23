@@ -7,10 +7,10 @@ $(document).ready(function() {
   }
 
   let data = [
-    {values: [10], label: "Barts", barColors: ["green"], labelColors: ["black"]},
-    {values: [30], label: "Carts", barColors: ["blue"], labelColors:["red"]},
+    {values: [5, 5], label: "Barts", barColors: ["green"], labelColors: ["black"]},
+    {values: [10, 20], label: "Carts", barColors: ["blue"], labelColors:["red"]},
     {values: [50], label: "Parts", barColors: ["green"], labelColors: ["black"]},
-    {values: [100], label: "Blarts", barColors: ["green"], labelColors: ["black"]}
+    {values: [60, 40], label: "Blarts", barColors: ["green"], labelColors: ["black"]}
   ];
   drawBarChart(data,options,$("#barChartBox"), debugMode);
 
@@ -98,18 +98,34 @@ const drawBarChart = function (data, options, element, debug = false) {
   //Now we're ready to start building!
   //This div is the container for all of this chart's elements.
   //element.append(`<div class = "chart-container" style = "width: ${width}; height: ${height}"></div>`);
-  let $chartDiv = $("<div>", {"class" : "chart-container", "style" : `width: ${width}; height: ${height}`});
+  let $chartContainerDiv = $("<div>", {"class" : "chart-container", "style" : `width: ${width}; height: ${height}`});
   let $titleDiv = $("<div>", {"class" : "title-container", "style" : `font-size:${titleFontSize}; padding:${titlePadding}; width: ${titleWidth}; height:${titleFontSize}; top:${titleOffsetY}`}).text(`${title}`);
-  let $xAxis = $("<div>", {"class" : "x-axis", "style" : `top: ${xAxisOffsetY}; width: ${xAxisWidth}; padding: ${axisPadding}`}).text(`${xLabel}`);
-  let $yAxis = $("<div>", {"class" : "y-axis", "style" : `top: ${yAxisOffsetY}; width: ${yAxisWidth}; padding: ${axisPadding}`}).text(`${yLabel}`);
-  let $yAxisLabels = [];
+  let $xAxisDiv = $("<div>", {"class" : "x-axis", "style" : `top: ${xAxisOffsetY}; width: ${xAxisWidth}; padding: ${axisPadding}`}).text(`${xLabel}`);
+  let $yAxisDiv = $("<div>", {"class" : "y-axis", "style" : `top: ${yAxisOffsetY}; width: ${yAxisWidth}; padding: ${axisPadding}`}).text(`${yLabel}`);
+  let $yAxisLabelDivs = [];
   for (i = 0; i<= yDivs; i++) {
-    $yAxisLabels.push($("<div>", {"class" : "y-axis-label"}).text(`${yAxisStepSize*i}`));
+    $yAxisLabelDivs.push($("<div>", {"class" : "y-axis-label"}).text(`${yAxisStepSize*i}`));
+  }
+  let $xAxisLabelDivs = [];
+  for (let bar of data) {
+    $xAxisLabelDivs.push($("<div>", {"class" : "x-axis-label"}).text(`${bar.label}`));
+  }
+  let $innerChartDiv = $("<div>", {});
+  let $barDivs = [];
+  for (let bar of data) {
+    let currentBar = []
+    for (let value of bar.values) {
+      currentBar.push($("<div>", {"class" : "data-bar"}).text(`${value}`));
+    }
+    $barDivs.push(currentBar);
   }
 
   //Put all the elements together.
-  $chartDiv.append($titleDiv, $xAxis, $yAxis, $yAxisLabels);
-  element.append($chartDiv);
+  $chartContainerDiv.append($titleDiv, $xAxisDiv, $yAxisDiv, $yAxisLabelDivs, $xAxisLabelDivs, $innerChartDiv);
+  for (let bar of $barDivs) {
+    $chartContainerDiv.append(bar);
+  }
+  element.append($chartContainerDiv);
 
   console.log(`Title dimensions: width ${$( ".title-container" ).outerWidth()}`);
 }
