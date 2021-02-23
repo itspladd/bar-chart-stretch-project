@@ -42,6 +42,7 @@ const drawBarChart = function (data, options, element, debug = false) {
   barSpacing: spacing in between each bar. Calculated based on available width after y-axis is inserted and number of bars.
   xLabel: label of the x-axis.
   yLabel: label of the y-axis.
+  yDivs: number of lines above zero in the y-axis, including the top line. For instance, yDivs = 4 and 100 max value will give markers of 0, 25, 50, 75, 100
   title: title of the chart.
   titleFont: font of chart title.
   titleFontSize: font size of chart title. title div height is calculated from this.
@@ -70,6 +71,7 @@ const drawBarChart = function (data, options, element, debug = false) {
   options["barSpacing"] = options["barSpacing"] || 10;
   options["xLabel"] = options["xLabel"] || "X Axis";
   options["yLabel"] = options["yLabel"] || "Y Axis";
+  options["yDivs"] = options["yDivs"] || 4;
   options["title"] = options["title"] || "My Untitled Chart";
   options["titleFont"] = options["titleFont"] || "Comic Sans";
   options["titleFontSize"] = options["titleFontSize"] || 30;
@@ -86,6 +88,9 @@ const drawBarChart = function (data, options, element, debug = false) {
   const xAxisOffsetY = titleOffsetY - axisFontSize - (axisPadding * 2);
   const yAxisOffsetY = xAxisOffsetY + 1;
   const yAxisWidth = xAxisOffsetY - (axisPadding * 2);
+
+  //Find the step size based on the biggest data bar and the number of divs.
+  const yAxisStepSize = findStepSize(findMaxVal(data), options.yDivs, true);
 
   //Now we're ready to start building!
   //This div is the container for all of this chart's elements.
@@ -105,6 +110,8 @@ const findMaxVal = function(data, debug = false) {
     maxVal = currentSum > maxVal ? currentSum : maxVal;
     debug ? console.log(`findMaxVal: current max value is ${maxVal}`) : null;
   }
+
+  return maxVal;
 }
 
 //Helper function to find a nice-ish number for the step size of the chart, based on the maximum value of the chart and the number of division lines ("steps") you want.
@@ -121,10 +128,11 @@ const findStepSize = function (maxVal, numSteps, debug = false) {
   let adjustedStepSize = Math.ceil(stepSize / stepSizeFactor) * stepSizeFactor;
 
   if (debug) {
-    console.log(`Rough stepsize: ${stepSize}`);
-    console.log(`stepSizePower is ${stepSizePower}`);
-    console.log(`Dividing stepSize by ${stepSizeFactor} to get ${stepSize / stepSizeFactor} and rounding up...`);
-    console.log(`Adjusted step size: ${adjustedStepSize}. With ${numSteps} divisions, chart will look like:`);
+    console.log(`finStepSize: maxVal is ${maxVal} and numSteps is ${numSteps}`);
+    console.log(`finStepSize: Rough stepsize: ${stepSize}`);
+    console.log(`finStepSize: stepSizePower is ${stepSizePower}`);
+    console.log(`finStepSize: Dividing stepSize by ${stepSizeFactor} to get ${stepSize / stepSizeFactor} and rounding up...`);
+    console.log(`finStepSize: Adjusted step size: ${adjustedStepSize}. With ${numSteps} divisions, chart will look like:`);
     for(let i = numSteps; i >= 0; i--) {
       console.log(i * adjustedStepSize);
     }
