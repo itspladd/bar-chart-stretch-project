@@ -1,4 +1,6 @@
 $(document).ready(function() {
+  let debugMode = true; //TODO: Make a better debug mode, possibly a box that can be checked on the main page, and then you click a button to reload charts instead of refreshing
+
   let options = {
     width:99,
     height:100
@@ -10,12 +12,12 @@ $(document).ready(function() {
     {values: [20, 51, 3], labels: ["Barts"], barColors: ["green"], labelColors: ["black"]},
     {values: [75], labels: ["Barts"], barColors: ["green"], labelColors: ["black"]}
   ];
-  drawBarChart(data,options,$("#barChartBox"));
+  drawBarChart(data,options,$("#barChartBox"), debugMode);
 
   $( "button" ).click(function( event ) {
 
   });
-  //Uncomment this line if you suspect that the entire JS file isn't being loaded.
+  //Uncomment this line if you suspect that the entire JS file isn't being loaded. Excluded from debug mode because I don't feel like closing the box every time I refresh the page.
   //alert("bar-chart-library.js loaded!");
 });
 
@@ -90,7 +92,7 @@ const drawBarChart = function (data, options, element, debug = false) {
   const yAxisWidth = xAxisOffsetY - (axisPadding * 2);
 
   //Find the step size based on the biggest data bar and the number of divs.
-  const yAxisStepSize = findStepSize(findMaxVal(data), options.yDivs, true);
+  const yAxisStepSize = findStepSize(findMaxVal(data, debug), options.yDivs, debug);
 
   //Now we're ready to start building!
   //This div is the container for all of this chart's elements.
