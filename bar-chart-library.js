@@ -97,8 +97,8 @@ const drawBarChart = function (data, options, element, debug = false) {
 
   //Now we're ready to start building!
   //This div is the container for all of this chart's elements.
-  element.append(`<div class = "chart-container" style = "width: ${width}; height: ${height}px"></div>`);
-
+  //element.append(`<div class = "chart-container" style = "width: ${width}; height: ${height}"></div>`);
+  let $chartDiv = $("<div>", {"class" : "chart-container", "style" : `width: ${width}; height: ${height}`});
   let $titleDiv = $("<div>", {"class" : "title-container", "style" : `font-size:${titleFontSize}; padding:${titlePadding}; width: ${titleWidth}; height:${titleFontSize}; top:${titleOffsetY}`}).text(`${title}`);
   let $xAxis = $("<div>", {"class" : "x-axis", "style" : `top: ${xAxisOffsetY}; width: ${xAxisWidth}; padding: ${axisPadding}`}).text(`${xLabel}`);
   let $yAxis = $("<div>", {"class" : "y-axis", "style" : `top: ${yAxisOffsetY}; width: ${yAxisWidth}; padding: ${axisPadding}`}).text(`${yLabel}`);
@@ -106,7 +106,10 @@ const drawBarChart = function (data, options, element, debug = false) {
   for (i = 0; i<= yDivs; i++) {
     $yAxisLabels.push($("<div>", {"class" : "y-axis-label"}).text(`${yAxisStepSize*i}`));
   }
-  $( ".chart-container" ).append($titleDiv, $xAxis, $yAxis, $yAxisLabels);
+
+  //Put all the elements together.
+  $chartDiv.append($titleDiv, $xAxis, $yAxis, $yAxisLabels);
+  element.append($chartDiv);
 
   console.log(`Title dimensions: width ${$( ".title-container" ).outerWidth()}`);
 }
