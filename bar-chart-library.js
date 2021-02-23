@@ -7,10 +7,10 @@ $(document).ready(function() {
   }
 
   let data = [
-    {values: [20, 50], labels: ["Barts"], barColors: ["green"], labelColors: ["black"]},
-    {values: [10, 20], labels: ["Blarts"], barColors: ["blue"], labelColors:["red"]},
-    {values: [20, 51, 3], labels: ["Barts"], barColors: ["green"], labelColors: ["black"]},
-    {values: [75], labels: ["Barts"], barColors: ["green"], labelColors: ["black"]}
+    {values: [10], label: "Barts", barColors: ["green"], labelColors: ["black"]},
+    {values: [30], label: "Carts", barColors: ["blue"], labelColors:["red"]},
+    {values: [50], label: "Parts", barColors: ["green"], labelColors: ["black"]},
+    {values: [100], label: "Blarts", barColors: ["green"], labelColors: ["black"]}
   ];
   drawBarChart(data,options,$("#barChartBox"), debugMode);
 
@@ -26,8 +26,8 @@ const drawBarChart = function (data, options, element, debug = false) {
   /*Expects an array of objects for data, an object for options, and a DOM or jQuery element for element
   ****DATA****
   data = [
-    {values: [int1, int2, ...], labels: ["label1", "label2", ...], barColors: ["color1", "color2"], labelColors: ["color1", "color2"]},
-    {values: [int1, int2, ...], labels: ["label1", "label2", ...], barColors: ["color1", "color2"], labelColors: ["color1", "color2"]},
+    {values: [int1, int2, ...], barColors: ["color1", "color2"], label: "label", labelColors: ["color1", "color2"]},
+    {values: [int1, int2, ...], barColors: ["color1", "color2"], label: "label2", labelColors: ["color1", "color2"]},
     etc
   ]
   values: an array of numerical values representing each segment of a single bar. A single value will result in a single bar.
@@ -67,7 +67,7 @@ const drawBarChart = function (data, options, element, debug = false) {
   const minWidth = 500;
   const minHeight = 400;
 
-  //Set any blank options to their default values.
+  //Set any blank options to a default value, or coerce any out-of-bounds options to their minimum.
   const width = options["width"] > minWidth ? options["width"] : minWidth;
   const height = options["height"] > minHeight ? options["height"] : minHeight;
   const barSpacing = options["barSpacing"] || 10;
@@ -93,15 +93,22 @@ const drawBarChart = function (data, options, element, debug = false) {
 
   //Find the step size based on the biggest data bar and the number of divs.
   const yAxisStepSize = findStepSize(findMaxVal(data, debug), yDivs, debug);
+  const yAxisLabelOffset = axisFontSize + (axisPadding * 2) + 4;
 
   //Now we're ready to start building!
   //This div is the container for all of this chart's elements.
   element.append(`<div class = "chart-container" style = "width: ${width}; height: ${height}px"></div>`);
 
-  //Insert the axes and the title.
-  $( ".chart-container" ).append(`<div class="y-axis" style = "top: ${yAxisOffsetY}; width: ${yAxisWidth}; padding: ${axisPadding}">${yLabel}</div>`);
-  $( ".chart-container" ).append(`<div class="x-axis" style = "top: ${xAxisOffsetY}; width: ${xAxisWidth}; padding: ${axisPadding}">${xLabel}</div>`);
-  $( ".chart-container" ).append(`<div class="title-container" style = "font-size:${titleFontSize}; padding:${titlePadding}; width: ${titleWidth}; height:${titleFontSize}; top:${titleOffsetY}">${title}</div>`);
+  let $titleDiv = $("<div>", {"class" : "title-container", "style" : `font-size:${titleFontSize}; padding:${titlePadding}; width: ${titleWidth}; height:${titleFontSize}; top:${titleOffsetY}`}).text(`${title}`);
+  let $xAxis = $("<div>", {"class" : "x-axis", "style" : `top: ${xAxisOffsetY}; width: ${xAxisWidth}; padding: ${axisPadding}`}).text(`${xLabel}`);
+  let $yAxis = $("<div>", {"class" : "y-axis", "style" : `top: ${yAxisOffsetY}; width: ${yAxisWidth}; padding: ${axisPadding}`}).text(`${yLabel}`);
+  let $yAxisLabels = [];
+  for (i = 0; i<= yDivs; i++) {
+    $yAxisLabels.push($("<div>", {"class" : "y-axis-label"}).text(`${yAxisStepSize*i}`));
+  }
+  $( ".chart-container" ).append($titleDiv, $xAxis, $yAxis, $yAxisLabels);
+
+  console.log(`Title dimensions: width ${$( ".title-container" ).outerWidth()}`);
 }
 
 const findMaxVal = function(data, debug = false) {
