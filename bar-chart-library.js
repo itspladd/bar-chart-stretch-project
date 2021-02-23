@@ -8,16 +8,22 @@
   titleFont: font of chart title.
   titleFontSize: font size of chart title. title div height is calculated from this.
 */
+/* Data input is as follows:
+  values: an array of numerical values representing each segment of a single bar. A single value will result in a single bar.
+  labels: an array of labels that will be matched to each value in the values array.
+  barColors: an array of strings representing colors that will be matched to each value in the values array.
+  labelColors: and array of strings representing colors that will be used for each label in the labels array.
+*/
 
 $(document).ready(function() {
   let options = {
     width:99,
-    height:100,
-    barColour: "green"
+    height:100
   }
 
   let data = [
-    {values: [1], labels: ["Barts"], barColors: ["green"], labelColors: ["blue"]}
+    {values: [50, 50], labels: ["Barts"], barColors: ["green"], labelColors: ["black"]},
+    {values: [10, 20], labels: ["Blarts"], barColors: ["blue"], labelColors:["red"]}
   ];
   drawBarChart(data,options,$("#barChartBox"));
 
@@ -40,6 +46,7 @@ const drawBarChart = function (data, options, element) {
   Each object is a single bar. The values array can have one or multiple values, which will be the number of sections in that bar.
   */
 
+  //Check inputs for validity. TODO: Flesh these out.
   if (!dataValid(data)) {
     console.log("Error with data");
   }
@@ -81,7 +88,7 @@ const drawBarChart = function (data, options, element) {
   //Insert the axes and the title.
   $( ".chart-container" ).append(`<div class="y-axis" style = "top: ${yAxisOffsetY}; width: ${yAxisWidth}; padding: ${axisPadding}">${options.yLabel}</div>`);
   $( ".chart-container" ).append(`<div class="x-axis" style = "top: ${xAxisOffsetY}; width: ${xAxisWidth}; padding: ${axisPadding}">${options.xLabel}</div>`);
-  $( ".chart-container" ).append(`<div class="title-container" style = "font-size:${options.titleFontSize}; padding:${titlePadding}; width: ${titleWidth}; height:${options.titleFontSize}; top:${titleOffsetY}" >${options.title}</div>`);
+  $( ".chart-container" ).append(`<div class="title-container" style = "font-size:${options.titleFontSize}; padding:${titlePadding}; width: ${titleWidth}; height:${options.titleFontSize}; top:${titleOffsetY}">${options.title}</div>`);
 }
 
 const valueToBar = function () {
