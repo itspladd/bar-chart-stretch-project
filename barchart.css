@@ -15,15 +15,15 @@
 }
 
 
-.title-container {
+.chart-container .title-container {
   background-color:royalblue;
   text-align: center;
 }
 
-.x-axis {
+.chart-container .x-axis {
 }
 
-.y-axis {
+.chart-container .y-axis {
   left:0;
   transform: rotate(-90deg);
   transform-origin: 0 0;
@@ -31,6 +31,6 @@
   font: "Arial";
 }
 
-.data-bar {
+.chart-container .data-bar {
   z-index: 1;
 }
