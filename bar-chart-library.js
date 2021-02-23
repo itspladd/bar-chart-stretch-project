@@ -68,15 +68,15 @@ const drawBarChart = function (data, options, element, debug = false) {
   const minHeight = 400;
 
   //Set any blank options to their default values.
-  options["width"] = options["width"] > minWidth ? options["width"] : minWidth;
-  options["height"] = options["height"] > minHeight ? options["height"] : minHeight;
-  options["barSpacing"] = options["barSpacing"] || 10;
-  options["xLabel"] = options["xLabel"] || "X Axis";
-  options["yLabel"] = options["yLabel"] || "Y Axis";
-  options["yDivs"] = options["yDivs"] || 4;
-  options["title"] = options["title"] || "My Untitled Chart";
-  options["titleFont"] = options["titleFont"] || "Comic Sans";
-  options["titleFontSize"] = options["titleFontSize"] || 30;
+  const width = options["width"] > minWidth ? options["width"] : minWidth;
+  const height = options["height"] > minHeight ? options["height"] : minHeight;
+  const barSpacing = options["barSpacing"] || 10;
+  const xLabel = options["xLabel"] || "X Axis";
+  const yLabel = options["yLabel"] || "Y Axis";
+  const yDivs = options["yDivs"] || 4;
+  const title = options["title"] || "My Untitled Chart";
+  const titleFont = options["titleFont"] || "Comic Sans";
+  const titleFontSize = options["titleFontSize"] || 30;
 
   //Style variables that aren't included in the options input
   const titlePadding = 10;
@@ -84,24 +84,24 @@ const drawBarChart = function (data, options, element, debug = false) {
   const axisPadding = 10;
 
   //Style variables that are calculated from other values
-  const titleWidth = options.width - (titlePadding*2);
-  const titleOffsetY = options.height - options.titleFontSize - (titlePadding * 2);
-  const xAxisWidth = options.width - (axisPadding * 2);
+  const titleWidth = width - (titlePadding*2);
+  const titleOffsetY = height - titleFontSize - (titlePadding * 2);
+  const xAxisWidth = width - (axisPadding * 2);
   const xAxisOffsetY = titleOffsetY - axisFontSize - (axisPadding * 2);
   const yAxisOffsetY = xAxisOffsetY + 1;
   const yAxisWidth = xAxisOffsetY - (axisPadding * 2);
 
   //Find the step size based on the biggest data bar and the number of divs.
-  const yAxisStepSize = findStepSize(findMaxVal(data, debug), options.yDivs, debug);
+  const yAxisStepSize = findStepSize(findMaxVal(data, debug), yDivs, debug);
 
   //Now we're ready to start building!
   //This div is the container for all of this chart's elements.
-  element.append(`<div class = "chart-container" style = "width: ${options.width}; height: ${options.height}px"></div>`);
+  element.append(`<div class = "chart-container" style = "width: ${width}; height: ${height}px"></div>`);
 
   //Insert the axes and the title.
-  $( ".chart-container" ).append(`<div class="y-axis" style = "top: ${yAxisOffsetY}; width: ${yAxisWidth}; padding: ${axisPadding}">${options.yLabel}</div>`);
-  $( ".chart-container" ).append(`<div class="x-axis" style = "top: ${xAxisOffsetY}; width: ${xAxisWidth}; padding: ${axisPadding}">${options.xLabel}</div>`);
-  $( ".chart-container" ).append(`<div class="title-container" style = "font-size:${options.titleFontSize}; padding:${titlePadding}; width: ${titleWidth}; height:${options.titleFontSize}; top:${titleOffsetY}">${options.title}</div>`);
+  $( ".chart-container" ).append(`<div class="y-axis" style = "top: ${yAxisOffsetY}; width: ${yAxisWidth}; padding: ${axisPadding}">${yLabel}</div>`);
+  $( ".chart-container" ).append(`<div class="x-axis" style = "top: ${xAxisOffsetY}; width: ${xAxisWidth}; padding: ${axisPadding}">${xLabel}</div>`);
+  $( ".chart-container" ).append(`<div class="title-container" style = "font-size:${titleFontSize}; padding:${titlePadding}; width: ${titleWidth}; height:${titleFontSize}; top:${titleOffsetY}">${title}</div>`);
 }
 
 const findMaxVal = function(data, debug = false) {
