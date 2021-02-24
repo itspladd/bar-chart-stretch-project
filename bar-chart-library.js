@@ -8,10 +8,10 @@ $(document).ready(function() {
   }
 
   let data = [
-    {values: [5, 5], label: "Barts", barColors: ["green"], labelColors: ["black"]},
+    {values: [5, 50], label: "Barts", barColors: ["green"], labelColors: ["black"]},
     {values: [10, 20], label: "Carts", barColors: ["blue"], labelColors:["red"]},
-    {values: [10, 50], label: "Parts", barColors: ["green"], labelColors: ["black"]},
-    {values: [40, 50], label: "Blarts", barColors: ["green"], labelColors: ["black"]}
+    {values: [10, 50], label: "Parts", barColors: ["grey"], labelColors: ["black"]},
+    {values: [40, 50], label: "Blarts", barColors: ["red"], labelColors: ["black"]}
   ];
   drawBarChart(data,options,$("#barChartBox"), debugMode);
 
@@ -108,7 +108,7 @@ const drawBarChart = function (data, options, element, debug = false) {
   for (let bar of data) {
     let currentBar = []
     for (let value of bar.values) {
-      currentBar.push($("<div>", {"class" : "data-bar", "style" : "border-style: solid solid none solid; border-color: black; border-width: 1px;" }).text(`${value}`));
+      currentBar.push($("<div>", {"class" : "data-bar", "style" : `border-style: solid solid none solid; background-color: ${bar.barColors[0]}; border-color: black; border-width: 1px;` }).text(`${value}`));
     }
     $barDivs.push(currentBar);
   }
