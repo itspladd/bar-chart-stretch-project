@@ -83,26 +83,19 @@ const drawBarChart = function (data, options, element, debug = false) {
   const axisFontSize = 16;
   const axisPadding = 10;
 
-  //Style variables that are calculated from other values
-  const titleWidth = width - (titlePadding*2);
-  const titleOffsetY = height - titleFontSize - (titlePadding * 2);
-  const xAxisWidth = width - (axisPadding * 2);
-  const xAxisOffsetY = titleOffsetY - axisFontSize - (axisPadding * 2);
-  const yAxisOffsetY = xAxisOffsetY + 1;
-  const yAxisWidth = xAxisOffsetY - (axisPadding * 2);
-
   //Find the step size based on the biggest data bar and the number of divs.
   const yAxisStepSize = findStepSize(findMaxVal(data, debug), yDivs, debug);
-  const yAxisLabelOffset = axisFontSize + (axisPadding * 2) + 4;
 
   //In this chunk, we create all of the divs. All of them.
   let $chartContainerDiv = $("<div>", {"class" : "chart-container", "style" : `width: ${width}; height: ${height}`});
-  let $titleDiv = $("<div>", {"class" : "title-container", "style" : `font-size:${titleFontSize}; padding:${titlePadding}; top:${titleOffsetY}`}).text(`${title}`);
-  let $xAxisDiv = $("<div>", {"class" : "x-axis", "style" : `top: ${xAxisOffsetY}; width: ${xAxisWidth}; padding: ${axisPadding}`}).text(`${xLabel}`);
-  let $yAxisDiv = $("<div>", {"class" : "y-axis", "style" : `top: ${yAxisOffsetY}; width: ${yAxisWidth}; padding: ${axisPadding}`}).text(`${yLabel}`);
+  let $titleDiv = $("<div>", {"class" : "title-container", "style" : `font-size:${titleFontSize}; padding:${titlePadding}`}).text(`${title}`);
+  let $xAxisDiv = $("<div>", {"class" : "x-axis", "style" : `padding: ${axisPadding}`}).text(`${xLabel}`);
+  let $yAxisDiv = $("<div>", {"class" : "y-axis", "style" : `padding: ${axisPadding}`}).text(`${yLabel}`);
   let $yAxisLabelDivs = [];
+  let $yAxisStepDivs = [];
   for (i = 0; i<= yDivs; i++) {
     $yAxisLabelDivs.push($("<div>", {"class" : "y-axis-label"}).text(`${yAxisStepSize*i}`));
+    $yAxisStepDivs.push($("<div>"));
   }
   let $xAxisLabelDivs = [];
   for (let bar of data) {
@@ -118,23 +111,40 @@ const drawBarChart = function (data, options, element, debug = false) {
     $barDivs.push(currentBar);
   }
 
-  //Put all the elements together.
-  $chartContainerDiv.append($titleDiv, $xAxisDiv, $yAxisDiv, $yAxisLabelDivs, $xAxisLabelDivs, $innerChartDiv);
+  //Put all the elements into the page.
+  $chartContainerDiv.append($titleDiv, $xAxisDiv, $yAxisDiv, $yAxisLabelDivs, $yAxisStepDivs, $xAxisLabelDivs, $innerChartDiv);
   for (let bar of $barDivs) {
     $chartContainerDiv.append(bar);
   }
-
   element.append($chartContainerDiv);
 
   //Give all divs a dashed border if we're in debug mode.
   debug ? $( "div" ).css({"border": "1px black dashed"}) : null;
 
-  //Now let's work on sizing the divs. First we'll gather some information on sizes.
+  //Now let's work on sizing the divs.
+  //Calculate and save some position and size variables.
+  //Variables are formed as follows: [x, y, width, height]
+  //null indicates a dimension or position that will not be explicitly set.
+  const titleDimensions = [null, ($chartContainerDiv.innerHeight() - $titleDiv.outerHeight()), $chartContainerDiv.innerWidth(), null];
+  const xAxisWidth = width - (axisPadding * 2);
+  const xAxisOffsetY = titleDimensions[1] - axisFontSize - (axisPadding * 2);
+  const yAxisOffsetY = xAxisOffsetY + 1;
+  const yAxisWidth = xAxisOffsetY - (axisPadding * 2);
+
+  //The inner chart div that holds the bars and has the lines for x and y axis
+  $innerChartDiv.outerWidth($chartContainerDiv.innerWidth() - (findYLabelMaxWidth($yAxisLabelDivs, debug) + $yAxisDiv.outerHeight()));
+  setDimensionsAndOffset($titleDiv, titleDimensions);
+
+  //$titleDiv.outerWidth($chartContainerDiv.innerWidth());
 
 
-  $titleDiv.outerWidth($chartContainerDiv.innerWidth());
+};
 
-
+const setDimensionsAndOffset = function ( $element, dimensions, setOuter = true, animation = [false, false, false, false] ) {
+  dimensions[0] ? $element.css("left", dimensions[0]) : null;
+  dimensions[1] ? $element.css("top", dimensions[1]) : null;
+  dimensions[2] ? setOuter ? $element.outerWidth(dimensions[2]) : $element.innerWidth(dimensions[2]) : null;
+  dimensions[3] ? setOuter ? $element.outerHeight(dimensions[3]) : $element.innerHeight(dimensions[3]) : null;
 }
 
 const findMaxVal = function(data, debug = false) {
@@ -147,7 +157,16 @@ const findMaxVal = function(data, debug = false) {
   }
 
   return maxVal;
-}
+};
+
+const findYLabelMaxWidth = function(yLabels, debug = false) {
+  let maxWidth = 0;
+  for (let label of yLabels) {
+    maxWidth = label.outerWidth() > maxWidth ? label.outerWidth() : maxWidth;
+    debug ? console.log(`findYLabelMaxWidth: current max value is ${maxWidth}`) : null;
+  }
+  return maxWidth;
+};
 
 //Helper function to find a nice-ish number for the step size of the chart, based on the maximum value of the chart and the number of division lines ("steps") you want.
 const findStepSize = function (maxVal, numSteps, debug = false) {
@@ -173,7 +192,7 @@ const findStepSize = function (maxVal, numSteps, debug = false) {
     }
   }
   return adjustedStepSize;
- }
+};
 
 const valueToBar = function () {
 
@@ -182,12 +201,12 @@ const valueToBar = function () {
 //Placeholder function to check the options object for invalid values.
 const optionsValid = function (options) {
   return true;
-}
+};
 
 const dataValid = function (data) {
   return true;
-}
+};
 
 const elementValid = function (element) {
   return true;
-}
+};
