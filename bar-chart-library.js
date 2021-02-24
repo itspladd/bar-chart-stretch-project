@@ -93,9 +93,9 @@ const drawBarChart = function (data, options, element, debug = false) {
   let $yAxisDiv = $("<div>", {"class" : "y-axis", "style" : `padding: ${axisPadding}`}).text(`${yLabel}`);
   let $yAxisLabelDivs = [];
   let $yAxisStepDivs = [];
-  for (i = 0; i<= yDivs; i++) {
-    $yAxisLabelDivs.push($("<div>", {"class" : "y-axis-label"}).text(`${yAxisStepSize*i}`));
-    $yAxisStepDivs.push($("<div>"));
+  for (i = yDivs; i >= 0; i--) {
+    $yAxisLabelDivs.push($("<div>", {"class" : "y-axis-label", "style" : "text-align: right; padding-right: 5;"}).text(`${yAxisStepSize*i}`));
+    $yAxisStepDivs.push($("<div>", {"style" : "border-style: solid none none none; border-width: 1px; background: rgba(0, 0, 0, 0);"}));
   }
   let $xAxisLabelDivs = [];
   for (let bar of data) {
@@ -112,7 +112,7 @@ const drawBarChart = function (data, options, element, debug = false) {
   }
 
   //Put all the elements into the page.
-  $chartContainerDiv.append($titleDiv, $xAxisDiv, $yAxisDiv, $yAxisLabelDivs, $yAxisStepDivs, $xAxisLabelDivs, $innerChartDiv);
+  $chartContainerDiv.append($titleDiv, $xAxisDiv, $yAxisDiv, $yAxisLabelDivs, $xAxisLabelDivs, $innerChartDiv, $yAxisStepDivs);
   for (let bar of $barDivs) {
     $chartContainerDiv.append(bar);
   }
@@ -123,7 +123,8 @@ const drawBarChart = function (data, options, element, debug = false) {
 
   //Now let's work on sizing the divs.
   //First, calculate some values that will be used multiple times later
-  const yAxisAndLabelWidth = (findYLabelMaxWidth($yAxisLabelDivs, debug) + $yAxisDiv.outerHeight());
+  const maxYLabelWidth = findYLabelMaxWidth($yAxisLabelDivs, debug);
+  const yAxisAndLabelWidth = maxYLabelWidth + $yAxisDiv.outerHeight();
 
   //Calculate and save some position and size variables.
   //Dimensions are formed as follows: {xOffset, yOffset, width, height}
@@ -138,25 +139,50 @@ const drawBarChart = function (data, options, element, debug = false) {
     "width" : $chartContainerDiv.innerWidth() - yAxisAndLabelWidth,
     "height" : null
   };
-  const yAxisDimensions = { "xOffset" : null,
-  "yOffset" : xAxisLabelDimensions.yOffset,
-  "width" : xAxisLabelDimensions.yOffset,
-  "height" : null
-  };
-
-  const xAxisLabelDimensions = { "xOffset" : null,
-  "yOffset" : xAxisDimensions.yOffset - $xAxisLabelDivs[0].outerHeight(),
-  "width" : null,
-  "height" : null
-  };
   const innerChartDimensions = {"xOffset" : xAxisDimensions.xOffset,
     "yOffset" : null,
     "width" : xAxisDimensions.width,
     "height" : xAxisDimensions.yOffset - $xAxisLabelDivs[0].outerHeight()
   };
+  const yAxisDimensions = { "xOffset" : null,
+  "yOffset" : innerChartDimensions.height,
+  "width" : innerChartDimensions.height,
+  "height" : null
+  };
+  const yAxisLabelDimensions = { "xOffset" : $yAxisDiv.outerHeight(),
+  "yOffset" : null,
+  "width" : maxYLabelWidth,
+  "height" : null
+  };
+  const yAxisDivDimensions = { "xOffset" : innerChartDimensions.xOffset,
+  "yOffset" : null,
+  "width" : innerChartDimensions.width,
+  "height" : innerChartDimensions.height / yDivs
+  };
+  //Now we actually position these divs so that we can access innerWidth() values later.
+  setDimensionsAndOffset($titleDiv, titleDimensions);
+  setDimensionsAndOffset($innerChartDiv, innerChartDimensions);
+  setDimensionsAndOffset($xAxisDiv, xAxisDimensions);
+  setDimensionsAndOffset($yAxisDiv, yAxisDimensions);
+  for (let i = yDivs; i >= 0; i--) {
+    yAxisDivDimensions.yOffset = i * yAxisDivDimensions.height;
+    yAxisLabelDimensions.yOffset = yAxisDivDimensions.yOffset - ($yAxisLabelDivs[i].outerHeight() / 2);
+    setDimensionsAndOffset($yAxisStepDivs[i], yAxisDivDimensions);
+    setDimensionsAndOffset($yAxisLabelDivs[i], yAxisLabelDimensions);
+  }
 
+  //Determine how wide each bar should be, given the number of bars, the spacing between them, and the amount of space inside the inner chart div.
+  const xAxisLabelDimensions = { "xOffset" : null,
+  "yOffset" : yAxisDimensions.yOffset,
+  "width" : ($innerChartDiv.width() - (data.length * barSpacing)) / data.length,
+  "height" : null
+  };
   console.log(`Total bars to calculate for: ${data.length}`);
-  console.log(`Total space to work in: ${$innerChartDiv.width()}`);
+  console.log(`Total space to work in: ${$innerChartDiv.width()}, minus ${data.length * barSpacing}`);
+  console.log(`Each bar will be ${xAxisLabelDimensions.width} wide`);
+
+
+
 /*
 Copy/pasteable object for dimensions.
 
@@ -166,11 +192,6 @@ Copy/pasteable object for dimensions.
     "height" : null
   };
  */
-  //The inner chart div that holds the bars and has the lines for x and y axis
-  setDimensionsAndOffset($titleDiv, titleDimensions);
-  setDimensionsAndOffset($innerChartDiv, innerChartDimensions);
-  setDimensionsAndOffset($xAxisDiv, xAxisDimensions);
-  setDimensionsAndOffset($yAxisDiv, yAxisDimensions);
   for (let xLabel of $xAxisLabelDivs) {
     setDimensionsAndOffset(xLabel, xAxisLabelDimensions);
   }
