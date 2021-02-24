@@ -95,11 +95,9 @@ const drawBarChart = function (data, options, element, debug = false) {
   const yAxisStepSize = findStepSize(findMaxVal(data, debug), yDivs, debug);
   const yAxisLabelOffset = axisFontSize + (axisPadding * 2) + 4;
 
-  //Now we're ready to start building!
-  //This div is the container for all of this chart's elements.
-  //element.append(`<div class = "chart-container" style = "width: ${width}; height: ${height}"></div>`);
+  //In this chunk, we create all of the divs. All of them.
   let $chartContainerDiv = $("<div>", {"class" : "chart-container", "style" : `width: ${width}; height: ${height}`});
-  let $titleDiv = $("<div>", {"class" : "title-container", "style" : `font-size:${titleFontSize}; padding:${titlePadding}; width: ${titleWidth}; height:${titleFontSize}; top:${titleOffsetY}`}).text(`${title}`);
+  let $titleDiv = $("<div>", {"class" : "title-container", "style" : `font-size:${titleFontSize}; padding:${titlePadding}; top:${titleOffsetY}`}).text(`${title}`);
   let $xAxisDiv = $("<div>", {"class" : "x-axis", "style" : `top: ${xAxisOffsetY}; width: ${xAxisWidth}; padding: ${axisPadding}`}).text(`${xLabel}`);
   let $yAxisDiv = $("<div>", {"class" : "y-axis", "style" : `top: ${yAxisOffsetY}; width: ${yAxisWidth}; padding: ${axisPadding}`}).text(`${yLabel}`);
   let $yAxisLabelDivs = [];
@@ -125,9 +123,18 @@ const drawBarChart = function (data, options, element, debug = false) {
   for (let bar of $barDivs) {
     $chartContainerDiv.append(bar);
   }
+
   element.append($chartContainerDiv);
 
-  console.log(`Title dimensions: width ${$( ".title-container" ).outerWidth()}`);
+  //Give all divs a dashed border if we're in debug mode.
+  debug ? $( "div" ).css({"border": "1px black dashed"}) : null;
+
+  //Now let's work on sizing the divs. First we'll gather some information on sizes.
+
+
+  $titleDiv.outerWidth($chartContainerDiv.innerWidth());
+
+
 }
 
 const findMaxVal = function(data, debug = false) {
