@@ -8,10 +8,10 @@ $(document).ready(function() {
   }
 
   let data = [
-    {values: [5, 50], label: "Barts", barColors: ["green"], labelColors: ["black"]},
+    {values: [50], label: "Barts", barColors: ["green"], labelColors: ["black"]},
     {values: [10, 20], label: "Carts", barColors: ["blue"], labelColors:["red"]},
     {values: [10, 50], label: "Parts", barColors: ["grey"], labelColors: ["black"]},
-    {values: [40, 50], label: "Blarts", barColors: ["red"], labelColors: ["black"]}
+    {values: [40, 60], label: "Blarts", barColors: ["red"], labelColors: ["black"]}
   ];
   drawBarChart(data,options,$("#barChartBox"), debugMode);
 
@@ -97,7 +97,8 @@ const drawBarChart = function (data, options, element, debug = false) {
   let $yAxisStepDivs = [];
   for (i = yDivs; i >= 0; i--) {
     $yAxisLabelDivs.push($("<div>", {"class" : "y-axis-label", "style" : "text-align: right; padding-right: 5;"}).text(`${yAxisStepSize*i}`));
-    $yAxisStepDivs.push($("<div>", {"style" : "border-style: solid none none none; border-width: 1px; background: rgba(0, 0, 0, 0);"}));
+    //If we're on the last loop, don't put in the 0 div. We want the 0 label, but not the div itself.
+    i !== 0 ? $yAxisStepDivs.push($("<div>", {"style" : "border-style: solid none none none; border-width: 1px; background: rgba(0, 0, 0, 0);"})) : null;
   }
   let $xAxisLabelDivs = [];
   for (let bar of data) {
@@ -169,8 +170,8 @@ const drawBarChart = function (data, options, element, debug = false) {
   for (let i = yDivs; i >= 0; i--) {
     yAxisDivDimensions.yOffset = i * yAxisDivDimensions.height;
     yAxisLabelDimensions.yOffset = yAxisDivDimensions.yOffset - ($yAxisLabelDivs[i].outerHeight() / 2);
-    setDimensionsAndOffset($yAxisStepDivs[i], yAxisDivDimensions);
     setDimensionsAndOffset($yAxisLabelDivs[i], yAxisLabelDimensions);
+    i !== 4 ? setDimensionsAndOffset($yAxisStepDivs[i], yAxisDivDimensions) : null;
   }
 
   //The bar's x offset starts right next to the border (we have to do this calculation here since the inner chart has padding)
@@ -230,9 +231,9 @@ Copy/pasteable object for dimensions.
 
 const setDimensionsAndOffset = function ( $element, dimensions, setOuter = true, animation = [false, false, false, false] ) {
   dimensions["xOffset"] ? $element.css("left", dimensions["xOffset"]) : null;
-  dimensions["yOffset"] ? $element.css("top", dimensions["yOffset"]) : null;
+  dimensions["yOffset"] ? $element.css("top", Math.ceil(dimensions["yOffset"])) : null;
   dimensions["width"] ? setOuter ? $element.outerWidth(dimensions["width"]) : $element.innerWidth(dimensions["width"]) : null;
-  dimensions["height"] ? setOuter ? $element.outerHeight(dimensions["height"]) : $element.innerHeight(dimensions["height"]) : null;
+  dimensions["height"] ? setOuter ? $element.outerHeight(Math.ceil(dimensions["height"])) : $element.innerHeight(Math.ceil(dimensions["height"])) : null;
 }
 
 const findMaxVal = function(data, debug = false) {
