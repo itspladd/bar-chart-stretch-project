@@ -123,17 +123,32 @@ const drawBarChart = function (data, options, element, debug = false) {
 
   //Now let's work on sizing the divs.
   //Calculate and save some position and size variables.
-  //Variables are formed as follows: [x, y, width, height]
+  //Dimensions are formed as follows: {xOffset, yOffset, width, height}
   //null indicates a dimension or position that will not be explicitly set.
-  const titleDimensions = [null, ($chartContainerDiv.innerHeight() - $titleDiv.outerHeight()), $chartContainerDiv.innerWidth(), null];
+  const titleDimensions = {"xOffset" : null,
+    "yOffset" : ($chartContainerDiv.innerHeight() - $titleDiv.outerHeight()),
+    "width" : $chartContainerDiv.innerWidth(),
+    "height" : null
+  };
+  const innerChartDimensions = {"xOffset" : (findYLabelMaxWidth($yAxisLabelDivs, debug) + $yAxisDiv.outerHeight()),
+    "yOffset" : null,
+    "width" : $chartContainerDiv.innerWidth() - (findYLabelMaxWidth($yAxisLabelDivs, debug) + $yAxisDiv.outerHeight()),
+    "height" : titleDimensions.yOffset - $xAxisDiv.outerHeight()
+  };
+  const xAxisDimensions = {"xOffset" : innerChartDimensions.xOffset, "yOffset" : innerChartDimensions.height, "width" : null, "height" : null};
   const xAxisWidth = width - (axisPadding * 2);
   const xAxisOffsetY = titleDimensions[1] - axisFontSize - (axisPadding * 2);
   const yAxisOffsetY = xAxisOffsetY + 1;
   const yAxisWidth = xAxisOffsetY - (axisPadding * 2);
 
+/*
+Copy/pasteable object for dimensions.
+{"xOffset" : null, "yOffset" : null, "width" : null, "height" : null};
+ */
   //The inner chart div that holds the bars and has the lines for x and y axis
-  $innerChartDiv.outerWidth($chartContainerDiv.innerWidth() - (findYLabelMaxWidth($yAxisLabelDivs, debug) + $yAxisDiv.outerHeight()));
   setDimensionsAndOffset($titleDiv, titleDimensions);
+  setDimensionsAndOffset($innerChartDiv, innerChartDimensions);
+  setDimensionsAndOffset($xAxisDiv, xAxisDimensions);
 
   //$titleDiv.outerWidth($chartContainerDiv.innerWidth());
 
@@ -141,10 +156,10 @@ const drawBarChart = function (data, options, element, debug = false) {
 };
 
 const setDimensionsAndOffset = function ( $element, dimensions, setOuter = true, animation = [false, false, false, false] ) {
-  dimensions[0] ? $element.css("left", dimensions[0]) : null;
-  dimensions[1] ? $element.css("top", dimensions[1]) : null;
-  dimensions[2] ? setOuter ? $element.outerWidth(dimensions[2]) : $element.innerWidth(dimensions[2]) : null;
-  dimensions[3] ? setOuter ? $element.outerHeight(dimensions[3]) : $element.innerHeight(dimensions[3]) : null;
+  dimensions["xOffset"] ? $element.css("left", dimensions["xOffset"]) : null;
+  dimensions["yOffset"] ? $element.css("top", dimensions["yOffset"]) : null;
+  dimensions["width"] ? setOuter ? $element.outerWidth(dimensions["width"]) : $element.innerWidth(dimensions["width"]) : null;
+  dimensions["height"] ? setOuter ? $element.outerHeight(dimensions["height"]) : $element.innerHeight(dimensions["height"]) : null;
 }
 
 const findMaxVal = function(data, debug = false) {
