@@ -47,6 +47,8 @@ const drawBarChart = function (data, options, element, debug = false) {
   width: the width of the overall chart container div, including Y-axis div. Other div dimensions are calculated based on this value.
   height: height of the overall chart container div, including X-axis and title divs. Other div dimensions are calculated based on this value.
   barSpacing: spacing in between each bar. Calculated based on available width after y-axis is inserted and number of bars.
+  hideBarValues : boolean value for whether or not to display the value of each bar.
+  barValueAlignment : where the values for a bar should be positioned if shown. Can be "flex-start", "center", or "flex-end"
   xLabel: label of the x-axis.
   yLabel: label of the y-axis.
   yDivs: number of lines above zero in the y-axis, including the top line. For instance, yDivs = 4 and 100 max value will give markers of 0, 25, 50, 75, 100
@@ -71,11 +73,14 @@ const drawBarChart = function (data, options, element, debug = false) {
 
   const minWidth = 500;
   const minHeight = 500;
+  const barAlignmentOptionStrings = {"top" : "flex-start", "middle" : "center", "bottom" : "flex-end"};
 
   //Set any blank options to a default value, or coerce any out-of-bounds options to their minimum.
   const width = options["width"] > minWidth ? options["width"] : minWidth;
   const height = options["height"] > minHeight ? options["height"] : minHeight;
   const barSpacing = options["barSpacing"] || 10;
+  const hideBarValues = options["hideBarValues"]; //Automatically defaults to "false" if this options["hideBarValues"] doesn't exist.
+  const barValueAlignment = options["barValueAlignment"] ? barAlignmentOptionStrings[options["barValueAlignment"]] : "center";
   const xLabel = options["xLabel"] || "X Axis";
   const yLabel = options["yLabel"] || "Y Axis";
   const yDivs = options["yDivs"] || 4;
@@ -110,11 +115,15 @@ const drawBarChart = function (data, options, element, debug = false) {
     $xAxisLabelDivs.push($("<div>", {"class" : "x-axis-label"}).text(`${bar.label}`));
   }
   let $innerChartDiv = $("<div>", {"style" : `border-style: none none solid solid; padding-left: ${.05 * width}; padding-right: ${.05 * width}`});
+  //Note that here, we create all the bar divs and also a nested div to hold the value of the bar.
   let $barDivs = [];
   for (let bar of data) {
     let currentBar = []
     for (let value of bar.values) {
-      currentBar.push($("<div>", {"class" : "data-bar", "style" : `border-style: solid solid none solid; background-color: ${bar.barColors[0]}; border-color: black; border-width: ${barBorderSize};` }).text(`${value}`));
+      currentBar.push($("<div>", {"class" : "data-bar",
+        "style" : `border-style: solid solid none; background-color: ${bar.barColors[0]}; border-color: black; border-width: ${barBorderSize}; align-items: ${barValueAlignment};`
+      }));
+      currentBar[currentBar.length - 1].append($("<div>", {"class" : "data-bar-value"}).text(`${hideBarValues ? "" : value}`));
     }
     $barDivs.push(currentBar);
   }
@@ -223,6 +232,7 @@ const drawBarChart = function (data, options, element, debug = false) {
 
 //Set the dimensions and offset of the input element.
 const setDimensionsAndOffset = function ({ $element, dimensions, setOuter = true, animation = [false, false, false, false] }) {
+  //Check for nonexistent or empty $element and dimensions inputs.
   if (!$element) {
     console.log(Error('No $element given to setDimensionsAndOffset'));
     return false;
