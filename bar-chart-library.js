@@ -11,6 +11,10 @@ $(document).ready(function() {
     {values: [50], label: "Barts", barColors: ["green"], labelColors: ["black"]},
     {values: [10, 20], label: "Carts", barColors: ["blue"], labelColors:["red"]},
     {values: [10, 50], label: "Parts", barColors: ["grey"], labelColors: ["black"]},
+    {values: [40, 60], label: "Blarts", barColors: ["red"], labelColors: ["black"]},
+    {values: [50], label: "Barts", barColors: ["green"], labelColors: ["black"]},
+    {values: [10, 20], label: "Carts", barColors: ["blue"], labelColors:["red"]},
+    {values: [10, 50], label: "Parts", barColors: ["grey"], labelColors: ["black"]},
     {values: [40, 60], label: "Blarts", barColors: ["red"], labelColors: ["black"]}
   ];
   drawBarChart(data,options,$("#barChartBox"), debugMode);
@@ -83,6 +87,7 @@ const drawBarChart = function (data, options, element, debug = false) {
   const titlePadding = 10;
   const axisFontSize = 16;
   const axisPadding = 10;
+  const barBorderSize = 2;
 
   //Find the step size based on the biggest data bar and the number of divs.
   const yAxisStepSize = findStepSize(findMaxVal(data, debug), yDivs, debug);
@@ -109,7 +114,7 @@ const drawBarChart = function (data, options, element, debug = false) {
   for (let bar of data) {
     let currentBar = []
     for (let value of bar.values) {
-      currentBar.push($("<div>", {"class" : "data-bar", "style" : `border-style: solid solid none solid; background-color: ${bar.barColors[0]}; border-color: black; border-width: 1px;` }).text(`${value}`));
+      currentBar.push($("<div>", {"class" : "data-bar", "style" : `border-style: solid solid none solid; background-color: ${bar.barColors[0]}; border-color: black; border-width: ${barBorderSize};` }).text(`${value}`));
     }
     $barDivs.push(currentBar);
   }
@@ -163,15 +168,15 @@ const drawBarChart = function (data, options, element, debug = false) {
   };
 
   //Now we actually position these divs so that we can access width() values when positioning the bars.
-  setDimensionsAndOffset($titleDiv, titleDimensions);
-  setDimensionsAndOffset($innerChartDiv, innerChartDimensions);
-  setDimensionsAndOffset($xAxisDiv, xAxisDimensions);
-  setDimensionsAndOffset($yAxisDiv, yAxisDimensions);
+  setDimensionsAndOffset({ $element : $titleDiv, dimensions : titleDimensions });
+  setDimensionsAndOffset({ $element : $innerChartDiv, dimensions : innerChartDimensions });
+  setDimensionsAndOffset({ $element : $xAxisDiv, dimensions : xAxisDimensions });
+  setDimensionsAndOffset({ $element : $yAxisDiv, dimensions : yAxisDimensions });
   for (let i = yDivs; i >= 0; i--) {
     yAxisDivDimensions.yOffset = i * yAxisDivDimensions.height;
     yAxisLabelDimensions.yOffset = yAxisDivDimensions.yOffset - ($yAxisLabelDivs[i].outerHeight() / 2);
-    setDimensionsAndOffset($yAxisLabelDivs[i], yAxisLabelDimensions);
-    i !== 4 ? setDimensionsAndOffset($yAxisStepDivs[i], yAxisDivDimensions) : null;
+    setDimensionsAndOffset({ $element : $yAxisLabelDivs[i], dimensions : yAxisLabelDimensions });
+    i !== 4 ? setDimensionsAndOffset({ $element : $yAxisStepDivs[i], dimensions : yAxisDivDimensions }) : null;
   }
 
   //The bar's x offset starts right next to the border (we have to do this calculation here since the inner chart has padding)
@@ -205,33 +210,21 @@ const drawBarChart = function (data, options, element, debug = false) {
     for (let j = 0; j < data[i].values.length; j++) {
       //Now for each individual segment, find the height of that segment: the percent of the total bar, times the relative height of the bar.
       barDimensions.height = (data[i].values[j] / barTotalTrue) * barTotalRelative;
-      setDimensionsAndOffset($barDivs[i][j], barDimensions);
+      setDimensionsAndOffset({ $element : $barDivs[i][j], dimensions : barDimensions });
       barDimensions.yOffset += barDimensions.height;
     }
     //Bar is placed! Now we place the label.
-    setDimensionsAndOffset($xAxisLabelDivs[i], xAxisLabelDimensions);
+    setDimensionsAndOffset({ $element : $xAxisLabelDivs[i], dimensions : xAxisLabelDimensions });
     //Once we've placed a whole bar, move the x offset over to the spot for the next bar (and label!).
     barDimensions.xOffset += barDimensions.width + barSpacing;
     xAxisLabelDimensions.xOffset += barDimensions.width + barSpacing;
   }
-
-
-
-/*
-Copy/pasteable object for dimensions.
-
-  const dimensions = { "xOffset" : null,
-    "yOffset" : null,
-    "width" : null,
-    "height" : null
-  };
- */
-
 };
 
-const setDimensionsAndOffset = function ( $element, dimensions, setOuter = true, animation = [false, false, false, false] ) {
+//Set the dimensions and offset of the input element.
+const setDimensionsAndOffset = function ({ $element, dimensions, setOuter = true, animation = [false, false, false, false] }) {
   dimensions["xOffset"] ? $element.css("left", dimensions["xOffset"]) : null;
-  dimensions["yOffset"] ? $element.css("top", Math.ceil(dimensions["yOffset"])) : null;
+  dimensions["yOffset"] ? $element.css("top", Math.round(dimensions["yOffset"])) : null;
   dimensions["width"] ? setOuter ? $element.outerWidth(dimensions["width"]) : $element.innerWidth(dimensions["width"]) : null;
   dimensions["height"] ? setOuter ? $element.outerHeight(Math.ceil(dimensions["height"])) : $element.innerHeight(Math.ceil(dimensions["height"])) : null;
 }
