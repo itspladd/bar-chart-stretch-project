@@ -223,6 +223,20 @@ const drawBarChart = function (data, options, element, debug = false) {
 
 //Set the dimensions and offset of the input element.
 const setDimensionsAndOffset = function ({ $element, dimensions, setOuter = true, animation = [false, false, false, false] }) {
+  if (!$element) {
+    console.log(Error('No $element given to setDimensionsAndOffset'));
+    return false;
+  }
+  if (!dimensions) {
+    console.log(Error('No dimensions object given to setDimensionsAndOffset'));
+    return false;
+  }
+  if (!Object.values(dimensions).length) {
+    console.log(Error('Empty dimensions object given to setDimensionsAndOffset'));
+    return false;
+  }
+
+
   dimensions["xOffset"] ? $element.css("left", dimensions["xOffset"]) : null;
   dimensions["yOffset"] ? $element.css("top", Math.round(dimensions["yOffset"])) : null;
   dimensions["width"] ? setOuter ? $element.outerWidth(dimensions["width"]) : $element.innerWidth(dimensions["width"]) : null;
