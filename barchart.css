@@ -14,6 +14,7 @@
 .chart-container .title-container {
   background-color:royalblue;
   text-align: center;
+  z-index: 2;
 }
 
 .chart-container .y-axis {
@@ -22,11 +23,16 @@
   transform-origin: 0 0;
 }
 
+.chart-container .y-axis-step {
+  background-color: whitesmoke;
+  z-index: -1;
+}
+
 .chart-container .data-bar {
   z-index: 1;
-  display: flex;
-  justify-content: center;
-  bottom: 0;
+  display: flex; /* Use flexbox so we can vertically-align the value divs within each bar.*/
+  justify-content: center; /*This line actually vertically-aligns the divs. */
+  bottom: 0; /*This line is critical for drawing the bars properly from the bottom up!*/
 }
 
 .chart-container .data-bar .data-value {
