@@ -4,18 +4,19 @@ $(document).ready(function() {
   let options = {
     width: 600,
     height: 500,
-    yDivs: 4
+    yDivs: 4,
+    barSpacing: 30
   }
 
   let data = [
-    {values: [50], label: "Barts", barColors: ["green"], labelColors: ["black"]},
-    {values: [10, 20], label: "Carts", barColors: ["blue"], labelColors:["red"]},
-    {values: [10, 50], label: "Parts", barColors: ["grey"], labelColors: ["black"]},
-    {values: [40, 60], label: "Blarts", barColors: ["red"], labelColors: ["black"]},
-    {values: [50], label: "Barts", barColors: ["green"], labelColors: ["black"]},
-    {values: [10, 20], label: "Carts", barColors: ["blue"], labelColors:["red"]},
-    {values: [10, 50], label: "Parts", barColors: ["grey"], labelColors: ["black"]},
-    {values: [40, 60], label: "Blarts", barColors: ["red"], labelColors: ["black"]}
+    {values: [50], label: "Barts", barColors: ["green"], labelColor: "none"},
+    {values: [10, 20], label: "Carts", barColors: ["blue", "red"], labelColor:"none"},
+    {values: [10, 50], label: "Parts", barColors: ["grey"], labelColor: "none"},
+    {values: [40, 60], label: "Blarts", barColors: ["red"], labelColor: "none"},
+    {values: [50], label: "Marts", barColors: ["green"], labelColor: "none"},
+    {values: [10, 20], label: "Tarts", barColors: ["blue"], labelColor:"grey"},
+    {values: [10, 50], label: "Darts", barColors: ["grey"], labelColor: "none"},
+    {values: [40, 60], label: "Warts", barColors: ["red", "purple"], labelColor: "none"}
   ];
   drawBarChart(data,options,$("#barChartBox"), debugMode);
 
@@ -31,14 +32,14 @@ const drawBarChart = function (data, options, element, debug = false) {
   /*Expects an array of objects for data, an object for options, and a DOM or jQuery element for element
   ****DATA****
   data = [
-    {values: [int1, int2, ...], barColors: ["color1", "color2"], label: "label", labelColors: ["color1", "color2"]},
-    {values: [int1, int2, ...], barColors: ["color1", "color2"], label: "label2", labelColors: ["color1", "color2"]},
+    {values: [int1, int2, ...], barColors: ["color1", "color2"], label: "label", labelColor: ["color1", "color2"]},
+    {values: [int1, int2, ...], barColors: ["color1", "color2"], label: "label2", labelColor: ["color1", "color2"]},
     etc
   ]
   values: an array of numerical values representing each segment of a single bar. A single value will result in a single bar.
   labels: an array of labels that will be matched to each value in the values array.
   barColors: an array of strings representing colors that will be matched to each value in the values array.
-  labelColors: and array of strings representing colors that will be used for each label in the labels array.
+  labelColor: and array of strings representing colors that will be used for each label in the labels array.
 
   ****OPTIONS****
   options = { width: number, height: number, ...}
@@ -51,6 +52,7 @@ const drawBarChart = function (data, options, element, debug = false) {
   barValueAlignment : where the values for a bar should be positioned if shown. Can be "flex-start", "center", or "flex-end"
   xLabel: label of the x-axis.
   yLabel: label of the y-axis.
+  axisFont : font-family for the axes and their labels.
   yDivs: number of lines above zero in the y-axis, including the top line. For instance, yDivs = 4 and 100 max value will give markers of 0, 25, 50, 75, 100
   title: title of the chart.
   titleFont: font of chart title.
@@ -83,10 +85,12 @@ const drawBarChart = function (data, options, element, debug = false) {
   const barValueAlignment = options["barValueAlignment"] ? barAlignmentOptionStrings[options["barValueAlignment"]] : "center";
   const xLabel = options["xLabel"] || "X Axis";
   const yLabel = options["yLabel"] || "Y Axis";
+  const axisFont = options["axisFont"] || "Helvetica";
   const yDivs = options["yDivs"] || 4;
   const title = options["title"] || "My Untitled Chart";
-  const titleFont = options["titleFont"] || "Comic Sans";
+  const titleFont = options["titleFont"] || "Arial";
   const titleFontSize = options["titleFontSize"] || 30;
+  const titleColor = options["titleCOlor"] || "black";
 
   //Style variables that aren't included in the options input
   const titlePadding = 10;
@@ -100,7 +104,7 @@ const drawBarChart = function (data, options, element, debug = false) {
 
   //In this chunk, we create all of the divs. All of them.
   let $chartContainerDiv = $("<div>", {"class" : "chart-container", "style" : `width: ${width}; height: ${height}`});
-  let $titleDiv = $("<div>", {"class" : "title-container", "style" : `font-size:${titleFontSize}; padding:${titlePadding}`}).text(`${title}`);
+  let $titleDiv = $("<div>", {"class" : "title-container", "style" : `color : ${titleColor}; font-family : ${titleFont}; font-size:${titleFontSize}; padding:${titlePadding}`}).text(`${title}`);
   let $xAxisDiv = $("<div>", {"class" : "x-axis", "style" : `padding: ${axisPadding}`}).text(`${xLabel}`);
   let $yAxisDiv = $("<div>", {"class" : "y-axis", "style" : `padding: ${axisPadding}`}).text(`${yLabel}`);
   let $yAxisLabelDivs = [];
@@ -112,18 +116,18 @@ const drawBarChart = function (data, options, element, debug = false) {
   }
   let $xAxisLabelDivs = [];
   for (let bar of data) {
-    $xAxisLabelDivs.push($("<div>", {"class" : "x-axis-label"}).text(`${bar.label}`));
+    $xAxisLabelDivs.push($("<div>", {"class" : "x-axis-label", "style" : `background-color: ${bar.labelColor || "none"}`}).text(`${bar.label}`));
   }
   let $innerChartDiv = $("<div>", {"style" : `border-style: none none solid solid; padding-left: ${.05 * width}; padding-right: ${.05 * width}`});
   //Note that here, we create all the bar divs and also a nested div to hold the value of the bar.
   let $barDivs = [];
   for (let bar of data) {
     let currentBar = []
-    for (let value of bar.values) {
+    for (let i = 0; i < bar.values.length; i++) {
       currentBar.push($("<div>", {"class" : "data-bar",
-        "style" : `border-style: solid solid none; background-color: ${bar.barColors[0]}; border-color: black; border-width: ${barBorderSize}; align-items: ${barValueAlignment};`
+        "style" : `border-style: solid solid none; background-color: ${bar.barColors[i] || bar.barColors[0]}; border-color: black; border-width: ${barBorderSize}; align-items: ${barValueAlignment};`
       }));
-      currentBar[currentBar.length - 1].append($("<div>", {"class" : "data-bar-value"}).text(`${hideBarValues ? "" : value}`));
+      currentBar[currentBar.length - 1].append($("<div>", {"class" : "data-bar-value"}).text(`${hideBarValues ? "" : bar.values[i]}`));
     }
     $barDivs.push(currentBar);
   }
@@ -177,15 +181,15 @@ const drawBarChart = function (data, options, element, debug = false) {
   };
 
   //Now we actually position these divs so that we can access width() values when positioning the bars.
-  setDimensionsAndOffset({ $element : $titleDiv, dimensions : titleDimensions });
-  setDimensionsAndOffset({ $element : $innerChartDiv, dimensions : innerChartDimensions });
+  setDimensionsAndOffset({ $element : $titleDiv, dimensions : titleDimensions, animation : [false, true, false, false]});
+  setDimensionsAndOffset({ $element : $innerChartDiv, dimensions : innerChartDimensions, animation : [false, false, false, false] });
   setDimensionsAndOffset({ $element : $xAxisDiv, dimensions : xAxisDimensions });
   setDimensionsAndOffset({ $element : $yAxisDiv, dimensions : yAxisDimensions });
   for (let i = yDivs; i >= 0; i--) {
     yAxisDivDimensions.yOffset = i * yAxisDivDimensions.height;
     yAxisLabelDimensions.yOffset = yAxisDivDimensions.yOffset - ($yAxisLabelDivs[i].outerHeight() / 2);
-    setDimensionsAndOffset({ $element : $yAxisLabelDivs[i], dimensions : yAxisLabelDimensions });
-    i !== 4 ? setDimensionsAndOffset({ $element : $yAxisStepDivs[i], dimensions : yAxisDivDimensions }) : null;
+    setDimensionsAndOffset({ $element : $yAxisLabelDivs[i], dimensions : yAxisLabelDimensions, animation : [false, true, false, false] });
+    i !== 4 ? setDimensionsAndOffset({ $element : $yAxisStepDivs[i], dimensions : yAxisDivDimensions, animation : [false, true, false, false] }) : null;
   }
 
   //The bar's x offset starts right next to the border (we have to do this calculation here since the inner chart has padding)
@@ -196,7 +200,6 @@ const drawBarChart = function (data, options, element, debug = false) {
   "width" : ($innerChartDiv.width() - ((data.length - 1) * barSpacing)) / data.length,
   "height" : null
   };
-
   //x axis labels should be centered on the bars, but the bars are positioned relative to the inner chart div, so we need to recalculate some things.
   //Start from the inner chart's x offset, add the border width (which is the difference between outerWidth and innerWidth), and then the offset we calculated for the bar.
   const xAxisLabelDimensions = { "xOffset" : innerChartDimensions.xOffset + ($innerChartDiv.outerWidth() - $innerChartDiv.innerWidth()) + barDimensions.xOffset,
@@ -219,11 +222,11 @@ const drawBarChart = function (data, options, element, debug = false) {
     for (let j = 0; j < data[i].values.length; j++) {
       //Now for each individual segment, find the height of that segment: the percent of the total bar, times the relative height of the bar.
       barDimensions.height = (data[i].values[j] / barTotalTrue) * barTotalRelative;
-      setDimensionsAndOffset({ $element : $barDivs[i][j], dimensions : barDimensions });
+      setDimensionsAndOffset({ $element : $barDivs[i][j], dimensions : barDimensions , animation : [false, false, true, true]});
       barDimensions.yOffset += barDimensions.height;
     }
     //Bar is placed! Now we place the label.
-    setDimensionsAndOffset({ $element : $xAxisLabelDivs[i], dimensions : xAxisLabelDimensions });
+    setDimensionsAndOffset({ $element : $xAxisLabelDivs[i], dimensions : xAxisLabelDimensions, animation : [true, false, false, false]});
     //Once we've placed a whole bar, move the x offset over to the spot for the next bar (and label!).
     barDimensions.xOffset += barDimensions.width + barSpacing;
     xAxisLabelDimensions.xOffset += barDimensions.width + barSpacing;
@@ -246,11 +249,31 @@ const setDimensionsAndOffset = function ({ $element, dimensions, setOuter = true
     return false;
   }
 
+  if (animation[0]) {
+    dimensions["xOffset"] ? $element.animate({"left" : dimensions["xOffset"]}) : null;
+  } else {
+    dimensions["xOffset"] ? $element.css("left", dimensions["xOffset"]) : null;
+  }
 
-  dimensions["xOffset"] ? $element.css("left", dimensions["xOffset"]) : null;
-  dimensions["yOffset"] ? $element.css("top", Math.round(dimensions["yOffset"])) : null;
-  dimensions["width"] ? setOuter ? $element.outerWidth(dimensions["width"]) : $element.innerWidth(dimensions["width"]) : null;
-  dimensions["height"] ? setOuter ? $element.outerHeight(Math.ceil(dimensions["height"])) : $element.innerHeight(Math.ceil(dimensions["height"])) : null;
+  if (animation[1]) {
+    dimensions["yOffset"] ? $element.animate({"top" : Math.round(dimensions["yOffset"])}) : null;
+  } else {
+    dimensions["yOffset"] ? $element.css("top", Math.round(dimensions["yOffset"])) : null;
+  }
+  dimensions["xOffset"] ? animation[0] ? $element.animate({"left" : dimensions["xOffset"]}) : $element.css("left", Math.round(dimensions["xOffset"])) : null;
+
+
+  if (animation[2]) {
+    dimensions["width"] ? setOuter ? $element.animate({"width" : dimensions["width"]}) : $element.animate({"width" : dimensions["width"]}) : null;
+  } else {
+    dimensions["width"] ? setOuter ? $element.outerWidth(dimensions["width"]) : $element.innerWidth(dimensions["width"]) : null;
+  }
+
+  if (animation[3]) {
+    dimensions["height"] ? setOuter ? $element.animate({ "height" : Math.ceil(dimensions["height"]) }) : $element.animate({ "height" : Math.ceil(dimensions["height"]) }) : null;
+  } else {
+    dimensions["height"] ? setOuter ? $element.outerHeight(Math.ceil(dimensions["height"])) : $element.innerHeight(Math.ceil(dimensions["height"])) : null;
+  }
 }
 
 const findMaxVal = function(data, debug = false) {
