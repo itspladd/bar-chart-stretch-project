@@ -26,6 +26,7 @@
   z-index: 1;
   display: flex;
   justify-content: center;
+  bottom: 0;
 }
 
 .chart-container .data-bar .data-value {
