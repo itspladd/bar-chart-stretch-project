@@ -15,7 +15,7 @@ $(document).ready(function() {
     {values: [40, 60], label: "Blarts", barColors: ["red"], labelColor: "none"},
     {values: [50], label: "Marts", barColors: ["green"], labelColor: "none"},
     {values: [10, 20], label: "Tarts", barColors: ["blue"], labelColor:"grey"},
-    {values: [10, 50], label: "Darts", barColors: ["grey"], labelColor: "none"},
+    {values: [25, 50], label: "Darts", barColors: ["grey"], labelColor: "none"},
     {values: [40, 60], label: "Warts", barColors: ["red", "purple"], labelColor: "none"}
   ];
   drawBarChart(data,options,$("#barChartBox"), debugMode);
@@ -48,6 +48,7 @@ const drawBarChart = function (data, options, element, debug = false) {
   width: the width of the overall chart container div, including Y-axis div. Other div dimensions are calculated based on this value.
   height: height of the overall chart container div, including X-axis and title divs. Other div dimensions are calculated based on this value.
   barSpacing: spacing in between each bar. Calculated based on available width after y-axis is inserted and number of bars.
+  barBorder: border size for each bar. Can be 0.
   hideBarValues : boolean value for whether or not to display the value of each bar.
   barValueAlignment : where the values for a bar should be positioned if shown. Can be "flex-start", "center", or "flex-end"
   xLabel: label of the x-axis.
@@ -81,6 +82,7 @@ const drawBarChart = function (data, options, element, debug = false) {
   const width = options["width"] > minWidth ? options["width"] : minWidth;
   const height = options["height"] > minHeight ? options["height"] : minHeight;
   const barSpacing = options["barSpacing"] || 10;
+  const barBorder = options["barBorder"] || 2;
   const hideBarValues = options["hideBarValues"]; //Automatically defaults to "false" if this options["hideBarValues"] doesn't exist.
   const barValueAlignment = options["barValueAlignment"] ? barAlignmentOptionStrings[options["barValueAlignment"]] : "center";
   const xLabel = options["xLabel"] || "X Axis";
@@ -112,11 +114,11 @@ const drawBarChart = function (data, options, element, debug = false) {
   for (i = yDivs; i >= 0; i--) {
     $yAxisLabelDivs.push($("<div>", {"class" : "y-axis-label", "style" : "text-align: right; padding-right: 5;"}).text(`${yAxisStepSize*i}`));
     //If we're on the last loop, don't put in the 0 div. We want the 0 label, but not the div itself.
-    i !== 0 ? $yAxisStepDivs.push($("<div>", {"style" : "border-style: solid none none none; border-width: 1px; background: rgba(0, 0, 0, 0);"})) : null;
+    i !== 0 ? $yAxisStepDivs.push($("<div>", {"class" : "y-axis-step", "style" : "border-style: solid none none none; border-width: 1px;"})) : null;
   }
   let $xAxisLabelDivs = [];
   for (let bar of data) {
-    $xAxisLabelDivs.push($("<div>", {"class" : "x-axis-label", "style" : `background-color: ${bar.labelColor || "none"}`}).text(`${bar.label}`));
+    $xAxisLabelDivs.push($("<div>", {"class" : "x-axis-label", "style" : `margin-top: 5px; background-color: ${bar.labelColor || "none"}`}).text(`${bar.label}`));
   }
   let $innerChartDiv = $("<div>", {"style" : `border-style: none none solid solid; border-width: ${axisLineWidth}; padding-left: ${.05 * width}; padding-right: ${.05 * width}`});
   //Note that here, we create all the bar divs and also a nested div to hold the value of the bar.
@@ -125,7 +127,7 @@ const drawBarChart = function (data, options, element, debug = false) {
     let currentBar = []
     for (let i = 0; i < bar.values.length; i++) {
       currentBar.push($("<div>", {"class" : "data-bar",
-        "style" : `background-color: ${bar.barColors[i] || bar.barColors[0]}; align-items: ${barValueAlignment};`
+        "style" : `background-color: ${bar.barColors[i] || bar.barColors[0]}; align-items: ${barValueAlignment}; border-style: solid solid none; border-width: ${barBorder}`
       }));
       currentBar[currentBar.length - 1].append($("<div>", {"class" : "data-bar-value"}).text(`${hideBarValues ? "" : bar.values[i]}`));
     }
@@ -182,7 +184,7 @@ const drawBarChart = function (data, options, element, debug = false) {
 
   //Now we actually position these divs so that we can access width() values when positioning the bars.
   setDimensionsAndOffset({ $element : $titleDiv, dimensions : titleDimensions, animation : [false, true, false, false]});
-  setDimensionsAndOffset({ $element : $innerChartDiv, dimensions : innerChartDimensions, animation : [false, false, false, false] });
+  setDimensionsAndOffset({ $element : $innerChartDiv, dimensions : innerChartDimensions });
   setDimensionsAndOffset({ $element : $xAxisDiv, dimensions : xAxisDimensions });
   setDimensionsAndOffset({ $element : $yAxisDiv, dimensions : yAxisDimensions });
   for (let i = yDivs; i >= 0; i--) {
@@ -208,7 +210,10 @@ const drawBarChart = function (data, options, element, debug = false) {
   "height" : null
   };
 
-/*   //This nested loop operates on every individual segment of each individual bar div.
+//The following implementation (the original) builds the bars from the top down - it finds the Y offset for the bar as a whole, then places the top segment, then the next, etc.
+//Currently it's saved here for posterity, or if I need to reference it.
+/**********************************************
+  //This nested loop operates on every individual segment of each individual bar div.
   //Initial x offset is set to the padding value of the div, so we'll start placing divs at the far left side of the inner chart.
   for (let i = 0; i < data.length; i++) {
     //Find the total value of the current bar.
@@ -230,8 +235,11 @@ const drawBarChart = function (data, options, element, debug = false) {
     //Once we've placed a whole bar, move the x offset over to the spot for the next bar (and label!).
     barDimensions.xOffset += barDimensions.width + barSpacing;
     xAxisLabelDimensions.xOffset += barDimensions.width + barSpacing;
-  } */
+  }
+  ***********************************************/
 
+  //This implementation builds the bars from the bottom up. It relies on bottom:0 being set in barchart.css.
+  //TODO: move this into its own function.
   for (let i = 0; i < data.length; i++) {
     //Find the total value of the current bar.
     let barTotalAbsolute = data[i].values.reduce( (accumulator, currentValue) => accumulator + currentValue);
@@ -239,9 +247,10 @@ const drawBarChart = function (data, options, element, debug = false) {
     let barTotalRelative = (barTotalAbsolute / maxChartValue) * $innerChartDiv.innerHeight();
     barDimensions.yOffset = 0;
     for (let j = data[i].values.length - 1; j >= 0; j--) {
-      barDimensions.height = (data[i].values[j] / barTotalAbsolute) * barTotalRelative;
+      //
+      barDimensions.height = ((data[i].values[j] / barTotalAbsolute) * barTotalRelative) - barBorder;
       setDimensionsAndOffset({ $element : $barDivs[i][j], dimensions : barDimensions , animation : [false, false, false, true], queueStr : "bars"});
-      j > 0 ? $barDivs[i][j-1].css("bottom", barDimensions.height) : null;
+      j > 0 ? $barDivs[i][j-1].css("bottom", barDimensions.height + barBorder) : null;
     }
     setDimensionsAndOffset({ $element : $xAxisLabelDivs[i], dimensions : xAxisLabelDimensions, animation : [true, false, false, false]});
     barDimensions.xOffset += barDimensions.width + barSpacing;
@@ -250,8 +259,11 @@ const drawBarChart = function (data, options, element, debug = false) {
   $barDivs[0][0].dequeue("bars");
 };
 
-//Set the dimensions and offset of the input element.
-const setDimensionsAndOffset = function ({ $element, dimensions, setOuter = true, animation = [false, false, false, false], queueStr}) {
+//Set or animate the dimensions and offset of the input element.
+//The dimensions{} input can be a full set of dimensions or a single value from the dimensions.
+//This allows us to (for example) animate the X value for a set of elements, then animate the height of those elements, without re-calculating the dimensions.
+//At least, I'm pretty sure that should work. TODO: delete this line if it works.
+const setDimensionsAndOffset = function ({ $element, dimensions, animation = [false, false, false, false], queueStr}) {
   //Check for nonexistent or empty $element and dimensions inputs.
   if (!$element) {
     console.log(Error('No $element given to setDimensionsAndOffset'));
@@ -280,15 +292,15 @@ const setDimensionsAndOffset = function ({ $element, dimensions, setOuter = true
   dimensions["xOffset"] ? animation[0] ? $element.animate({"left" : dimensions["xOffset"]}) : $element.css("left", dimensions["xOffset"]) : null;
 
   if (animation[2]) {
-    dimensions["width"] ? setOuter ? $element.animate({"width" : dimensions["width"]}) : $element.animate({"width" : dimensions["width"]}) : null;
+    dimensions["width"] ? $element.animate({"width" : dimensions["width"]}) : null;
   } else {
-    dimensions["width"] ? setOuter ? $element.outerWidth(dimensions["width"]) : $element.innerWidth(dimensions["width"]) : null;
+    dimensions["width"] ? $element.outerWidth(dimensions["width"]) : null;
   }
 
   if (animation[3]) {
-    dimensions["height"] ? setOuter ? $element.animate({ "height" : dimensions["height"] }, {queue: queueStr}) : $element.animate({ "height" : dimensions["height"] }) : null;
+    dimensions["height"] ? $element.animate({ "height" : dimensions["height"] }) : null;
   } else {
-    dimensions["height"] ? setOuter ? $element.outerHeight(dimensions["height"]) : $element.innerHeight(dimensions["height"]) : null;
+    dimensions["height"] ? $element.outerHeight(dimensions["height"]) : null;
   }
 }
 
