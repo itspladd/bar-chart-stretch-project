@@ -14,7 +14,7 @@ $(document).ready(function() {
     {values: [10, 50], label: "Parts", barColors: ["grey"], labelColor: "none"},
     {values: [40, 60], label: "Blarts", barColors: ["red"], labelColor: "none"},
     {values: [50], label: "Marts", barColors: ["green"], labelColor: "none"},
-    {values: [10, 20], label: "Tarts", barColors: ["blue"], labelColor:"grey"},
+    {values: [10, 20], label: "Tarts", barColors: ["blue"], labelColor:"none"},
     {values: [25, 50], label: "Darts", barColors: ["grey"], labelColor: "none"},
     {values: [40, 60], label: "Warts", barColors: ["red", "purple"], labelColor: "none"}
   ];
@@ -94,12 +94,12 @@ const drawBarChart = function (data, options, element, debug = false) {
   options["titleFontSize"] = options["titleFontSize"] || 30;
   options["titleColor"] = options["titleCOlor"] || "black";
 
-  //Style variables that aren't included in the options input
-  const titlePadding = 10;
-  const axisFontSize = 16;
-  const axisPadding = 10;
-  const axisLineWidth = 3;
-  const innerChartPadding = .05 * options.width;
+  //Style variables that aren't included in the options input - adding them to the options object so it's easier to pass them down to helper functions later
+  options["titlePadding"] = options["titlePadding"] || 10;
+  options["axisFontSize"] = options["axisFontSize"] || 16;
+  options["axisPadding"] = options["axisPadding"] || 10;
+  options["axisLineWidth"] = options["axisLineWidth"] || 3;
+  options["innerChartPadding"] = options["innerChartPadding"] || (.05 * options.width);
 
   //Find the step size based on the biggest data bar and the number of divs.
   const yAxisStepSize = findStepSize(findMaxVal(data, debug), options.yDivs, debug);
@@ -107,13 +107,13 @@ const drawBarChart = function (data, options, element, debug = false) {
 
   //In this chunk, we create all of the divs. All of them.
   let $chartContainerDiv = $("<div>", {"class" : "chart-container", "style" : `width: ${options.width}; height: ${options.height}`});
-  let $titleDiv = $("<div>", {"class" : "title-container", "style" : `color : ${options.titleColor}; font-family : ${options.titleFont}; font-size:${options.titleFontSize}; padding:${titlePadding}`}).text(`${options.title}`);
-  let $xAxisDiv = $("<div>", {"class" : "x-axis", "style" : `padding: ${axisPadding}`}).text(`${options.xLabel}`);
-  let $yAxisDiv = $("<div>", {"class" : "y-axis", "style" : `padding: ${axisPadding}`}).text(`${options.yLabel}`);
+  let $titleDiv = $("<div>", {"class" : "title-container", "style" : `color : ${options.titleColor}; font-family : ${options.titleFont}; font-size:${options.titleFontSize}; padding:${options.titlePadding}`}).text(`${options.title}`);
+  let $xAxisDiv = $("<div>", {"class" : "x-axis", "style" : `padding: ${options.axisPadding}`}).text(`${options.xLabel}`);
+  let $yAxisDiv = $("<div>", {"class" : "y-axis", "style" : `padding: ${options.axisPadding}`}).text(`${options.yLabel}`);
   let $yAxisLabelDivs = [];
   let $yAxisStepDivs = [];
   for (i = options.yDivs; i >= 0; i--) {
-    $yAxisLabelDivs.push($("<div>", {"class" : "y-axis-label", "style" : "text-align: right; padding-right: 5;"}).text(`${yAxisStepSize*i}`));
+    $yAxisLabelDivs.push($("<div>", {"class" : "y-axis-label", "style" : "text-align: center; padding-right: 5;"}).text(`${yAxisStepSize*i}`));
     //If we're on the last loop, don't put in the 0 div. We want the 0 label, but not the div itself.
     i !== 0 ? $yAxisStepDivs.push($("<div>", {"class" : "y-axis-step", "style" : "border-style: solid none none none; border-width: 1px;"})) : null;
   }
@@ -121,7 +121,7 @@ const drawBarChart = function (data, options, element, debug = false) {
   for (let bar of data) {
     $xAxisLabelDivs.push($("<div>", {"class" : "x-axis-label", "style" : `margin-top: 5px; background-color: ${bar.labelColor || "none"}`}).text(`${bar.label}`));
   }
-  let $innerChartDiv = $("<div>", {"style" : `border-style: none none solid solid; border-width: ${axisLineWidth}; padding-left: ${innerChartPadding}; padding-right: ${innerChartPadding}`});
+  let $innerChartDiv = $("<div>", {"style" : `border-style: none none solid solid; border-width: ${options.axisLineWidth}; padding-left: ${options.innerChartPadding}; padding-right: ${options.innerChartPadding}`});
   //Note that here, we create all the bar divs and also a nested div to hold the value of the bar.
   let $barDivs = [];
   for (let bar of data) {
@@ -180,7 +180,7 @@ const drawBarChart = function (data, options, element, debug = false) {
   const yAxisDivDimensions = { "xOffset" : innerChartDimensions.xOffset,
   "yOffset" : null,
   "width" : innerChartDimensions.width,
-  "height" : (innerChartDimensions.height - axisLineWidth) / options.yDivs
+  "height" : (innerChartDimensions.height - options.axisLineWidth) / options.yDivs
   };
 
   //Now we actually position these divs so that we can access width() values when positioning the bars.
@@ -205,9 +205,9 @@ const drawBarChart = function (data, options, element, debug = false) {
   };
   //x axis labels should be centered on the bars, but the bars are positioned relative to the inner chart div, so we need to recalculate some things.
   //Start from the inner chart's x offset, add the border width (which is the difference between outerWidth and innerWidth), and then the offset we calculated for the bar.
-  const xAxisLabelDimensions = { "xOffset" : innerChartDimensions.xOffset + ($innerChartDiv.outerWidth() - $innerChartDiv.innerWidth()) + barDimensions.xOffset,
+  const xAxisLabelDimensions = { "xOffset" : innerChartDimensions.xOffset + options.axisLineWidth + (options.barSpacing / 2),
   "yOffset" : yAxisDimensions.yOffset,
-  "width" : barDimensions.width,
+  "width" : barDimensions.width + options.barSpacing,
   "height" : null
   };
 
