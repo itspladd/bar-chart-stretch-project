@@ -1,14 +1,11 @@
 
 
 .chart-container {
-  background-color: rgb(160, 160, 160);
-  border: 1px black dashed;
   margin: auto;
   position: relative;
 }
 
 .chart-container div {
-  background-color:skyblue;
   text-align: center;
   position: absolute;
 }
@@ -19,17 +16,18 @@
   text-align: center;
 }
 
-.chart-container .x-axis {
-}
-
 .chart-container .y-axis {
   left:0;
   transform: rotate(-90deg);
   transform-origin: 0 0;
-
-  font: "Arial";
 }
 
 .chart-container .data-bar {
   z-index: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.chart-container .data-bar .data-value {
+
 }
