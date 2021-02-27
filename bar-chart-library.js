@@ -109,16 +109,11 @@ const drawBarChart = function (data, options, element, debug = false) {
   //Generate all the component divs of the chart.
   const $chartDivs = generateChartDivs(data, options, yAxisStepSize);
 
-  //Insert all the elements into the page.
-  //$chartDivs.bars must be inserted separately since it's an array of arrays, which jQuery doesn't handle well.
-  for (let div in $chartDivs) {
-    div !== "container" && div !== "bars" ? $chartDivs.container.append($chartDivs[`${div}`]) : null;
-  }
-  for (let bar of $chartDivs.bars) {
-    $chartDivs.innerChart.append(bar);
-  }
+  //Insert all the divs into the page.
+  insertDivs($chartDivs, element);
+
+  //Make all the divs invisible.
   $chartDivs.container.children().animate({opacity : "0"}, 0);
-  element.append($chartDivs.container);
 
   //Now let's work on sizing the divs.
   //First, calculate some values that will be used multiple times later
@@ -316,6 +311,21 @@ const generateChartDivs = function (data, options, yAxisStepSize) {
   }
 
   return $divs;
+}
+
+/********************************************************
+Inserts all divs into the target element.
+********************************************************/
+const insertDivs = function ($divs, target) {
+  //$chartDivs.bars must be inserted separately since it's an array of arrays, which jQuery doesn't handle well.
+  for (let div in $divs) {
+    div !== "container" && div !== "bars" ? $divs.container.append($divs[`${div}`]) : null;
+  }
+  for (let bar of $divs.bars) {
+    $divs.innerChart.append(bar);
+  }
+
+  target.append($divs.container);
 }
 
 /********************************************************
