@@ -106,73 +106,49 @@ const drawBarChart = function (data, options, element, debug = false) {
   const yAxisStepSize = findStepSize(findMaxVal(data, debug), options.yDivs, debug);
   const maxChartValue = yAxisStepSize * options.yDivs;
 
-  //In this chunk, we create all of the divs. All of them.
-  let $chartContainerDiv = $("<div>", {"class" : "chart-container", "style" : `width: ${options.width}; height: ${options.height}`});
-  let $titleDiv = $("<div>", {"class" : "title-container", "style" : `color : ${options.titleColor}; font-family : ${options.titleFont}; font-size:${options.titleFontSize}; padding:${options.titlePadding}`}).text(`${options.title}`);
-  let $xAxisDiv = $("<div>", {"class" : "x-axis", "style" : `padding: ${options.axisPadding}`}).text(`${options.xLabel}`);
-  let $yAxisDiv = $("<div>", {"class" : "y-axis", "style" : `padding: ${options.axisPadding}`}).text(`${options.yLabel}`);
-  let $yAxisLabelDivs = [];
-  let $yAxisStepDivs = [];
-  for (i = options.yDivs; i >= 0; i--) {
-    $yAxisLabelDivs.push($("<div>", {"class" : "y-axis-label", "style" : "text-align: center; padding-right: 5;"}).text(`${yAxisStepSize*i}`));
-  }
-  for (i = 0; i < options.yDivs; i++) {
-    $yAxisStepDivs.push($("<div>", {"class" : "y-axis-step", "style" : `border-style: solid none none none; border-width: 1px; z-index: -${i}`}));
-  }
-  let $xAxisLabelDivs = [];
-  for (let bar of data) {
-    $xAxisLabelDivs.push($("<div>", {"class" : "x-axis-label", "style" : `margin-top: 5px; background-color: ${bar.labelColor || "none"}`}).text(`${bar.label}`));
-  }
-  let $innerChartDiv = $("<div>", {"style" : `z-index: 1; border-style: none none solid solid; border-width: ${options.axisLineWidth}; padding-left: ${options.innerChartPadding}; padding-right: ${options.innerChartPadding}`});
-  //Note that here, we create all the bar divs and also a nested div to hold the value of the bar.
-  let $barDivs = [];
-  for (let bar of data) {
-    let currentBar = []
-    for (let i = 0; i < bar.values.length; i++) {
-      currentBar.push($("<div>", {"class" : "data-bar",
-        "style" : `background-color: ${bar.barColors[i] || bar.barColors[0]}; align-items: ${options.barValueAlignment}; border-style: solid solid none; border-width: ${options.barBorder}`
-      }));
-      currentBar[currentBar.length - 1].append($("<div>", {"class" : "data-bar-value"}).text(`${options.hideBarValues ? "" : bar.values[i]}`));
-    }
-    $barDivs.push(currentBar);
-  }
+  //Generate all the component divs of the chart.
+  const $chartDivs = generateChartDivs(data, options, yAxisStepSize);
 
-  //Put all the elements into the page.
-  $chartContainerDiv.append($titleDiv, $xAxisDiv, $yAxisDiv, $yAxisLabelDivs, $xAxisLabelDivs, $innerChartDiv, $yAxisStepDivs);
-  for (let bar of $barDivs) {
-    $innerChartDiv.append(bar);
+  //Insert all the elements into the page.
+  //$chartDivs.bars must be inserted separately since it's an array of arrays, which jQuery doesn't handle well.
+  for (let div in $chartDivs) {
+    div !== "container" && div !== "bars" ? $chartDivs.container.append($chartDivs[`${div}`]) : null;
   }
-  $chartContainerDiv.children().animate({opacity : "0"}, 0);
-  element.append($chartContainerDiv);
+  for (let bar of $chartDivs.bars) {
+    $chartDivs.innerChart.append(bar);
+  }
+  $chartDivs.container.children().animate({opacity : "0"}, 0);
+  element.append($chartDivs.container);
 
   //Now let's work on sizing the divs.
   //First, calculate some values that will be used multiple times later
-  const maxYLabelWidth = findYLabelMaxWidth($yAxisLabelDivs, debug);
-  const yAxisAndLabelWidth = maxYLabelWidth + $yAxisDiv.outerHeight();
+  const maxYLabelWidth = findYLabelMaxWidth($chartDivs.yAxisLabels, debug);
+  const yAxisAndLabelWidth = maxYLabelWidth + $chartDivs.yAxis.outerHeight();
 
   //Dimensions are formed as follows: {xOffset, yOffset, width, height}
   //null indicates a dimension or position that will not be explicitly set.
+  const dimensions = { };
   const titleDimensions = { "xOffset" : null,
-    "yOffset" : ($chartContainerDiv.innerHeight() - $titleDiv.outerHeight()),
-    "width" : $chartContainerDiv.innerWidth(),
+    "yOffset" : ($chartDivs.container.innerHeight() - $chartDivs.title.outerHeight()),
+    "width" : $chartDivs.container.innerWidth(),
     "height" : null
   };
   const xAxisDimensions = { "xOffset" : yAxisAndLabelWidth,
-    "yOffset" : titleDimensions.yOffset - $xAxisDiv.outerHeight(),
-    "width" : $chartContainerDiv.innerWidth() - yAxisAndLabelWidth,
+    "yOffset" : titleDimensions.yOffset - $chartDivs.xAxis.outerHeight(),
+    "width" : $chartDivs.container.innerWidth() - yAxisAndLabelWidth,
     "height" : null
   };
   const innerChartDimensions = {"xOffset" : xAxisDimensions.xOffset,
     "yOffset" : null,
     "width" : xAxisDimensions.width,
-    "height" : xAxisDimensions.yOffset - $xAxisLabelDivs[0].outerHeight()
+    "height" : xAxisDimensions.yOffset - $chartDivs.xAxisLabels[0].outerHeight()
   };
   const yAxisDimensions = { "xOffset" : null,
   "yOffset" : innerChartDimensions.height,
   "width" : innerChartDimensions.height,
   "height" : null
   };
-  const yAxisLabelDimensions = { "xOffset" : $yAxisDiv.outerHeight(),
+  const yAxisLabelDimensions = { "xOffset" : $chartDivs.yAxis.outerHeight(),
   "yOffset" : null,
   "width" : maxYLabelWidth,
   "height" : null
@@ -212,23 +188,23 @@ const drawBarChart = function (data, options, element, debug = false) {
 
 
   //At this point, nothing is visible. Let's get all our elements in position.
-  setDimensionsAndOffset({ $element : $innerChartDiv, dimensions : innerChartDimensions } );
+  setDimensionsAndOffset({ $element : $chartDivs.innerChart, dimensions : innerChartDimensions } );
   for (let i = options.yDivs; i >= 0; i--) {
-    yAxisLabelDimensions.yOffset = (i * yAxisDivDimensions.height) - ($yAxisLabelDivs[i].outerHeight() / 2);
-    setDimensionsAndOffset( { $element : $yAxisLabelDivs[i], dimensions : yAxisLabelDimensions } );
+    yAxisLabelDimensions.yOffset = (i * yAxisDivDimensions.height) - ($chartDivs.yAxisLabels[i].outerHeight() / 2);
+    setDimensionsAndOffset( { $element : $chartDivs.yAxisLabels[i], dimensions : yAxisLabelDimensions } );
     //$yAxisStepDivs[] contains one less element than yDivs would indicate, so we need to skip that case or else we get an error.
-    i !== options.yDivs ? setDimensionsAndOffset({ $element : $yAxisStepDivs[i], dimensions : yAxisDivDimensions }) : null;
+    i !== options.yDivs ? setDimensionsAndOffset({ $element : $chartDivs.yAxisSteps[i], dimensions : yAxisDivDimensions }) : null;
   }
-  setDimensionsAndOffset({ $element : $titleDiv, dimensions : titleDimensions });
-  setDimensionsAndOffset({ $element : $xAxisDiv, dimensions : xAxisDimensions });
-  setDimensionsAndOffset({ $element : $yAxisDiv, dimensions : yAxisDimensions });
+  setDimensionsAndOffset({ $element : $chartDivs.title, dimensions : titleDimensions });
+  setDimensionsAndOffset({ $element : $chartDivs.yAxis, dimensions : yAxisDimensions });
+  setDimensionsAndOffset({ $element : $chartDivs.xAxis, dimensions : xAxisDimensions });
 
   for (let i = 0; i < data.length; i++) {
     for (let j = data[i].values.length - 1; j >= 0; j--) {
-      $barDivs[i][j].css("opacity", 1);
-      setDimensionsAndOffset({ $element : $barDivs[i][j], dimensions : barDimensions});
+      $chartDivs.bars[i][j].css("opacity", 1);
+      setDimensionsAndOffset({ $element : $chartDivs.bars[i][j], dimensions : barDimensions});
     }
-    setDimensionsAndOffset({ $element : $xAxisLabelDivs[i], dimensions : xAxisLabelDimensions});
+    setDimensionsAndOffset({ $element : $chartDivs.xAxisLabels[i], dimensions : xAxisLabelDimensions});
     barDimensions.xOffset += barDimensions.width + options.barSpacing + options.barBorder * 2;
     xAxisLabelDimensions.xOffset += barDimensions.width + options.barSpacing + options.barBorder * 2;
   }
@@ -237,17 +213,17 @@ const drawBarChart = function (data, options, element, debug = false) {
   //First the inner chart (with the axis lines).
   //When it's complete, it calls the recursive animateYStepDivs function to animate the background sequentially.
   let animatingYDivs = $.Deferred();
-  $innerChartDiv.animate({ opacity : 1, left : `+=${options.fadeInOffset}` }, 400, function () {
-    animateYStepDivs($yAxisStepDivs, yAxisDivDimensions, 0, animatingYDivs);
+  $chartDivs.innerChart.animate({ opacity : 1, left : `+=${options.fadeInOffset}` }, 400, function () {
+    animateYStepDivs($chartDivs.yAxisSteps, yAxisDivDimensions, 0, animatingYDivs);
   } );
   $.when( animatingYDivs ).done( function() {
-    $titleDiv.animate({ opacity : 1, left: `+=${options.fadeInOffset}` });
-    $yAxisDiv.animate({ opacity : 1, left: `+=${options.fadeInOffset}` });
-    $xAxisDiv.animate({ opacity : 1, left: `+=${options.fadeInOffset}` });
-    for( let $label of $yAxisLabelDivs ) {
+    $chartDivs.yAxis.animate({ opacity : 1, left: `+=${options.fadeInOffset}` });
+    $chartDivs.xAxis.animate({ opacity : 1, left: `+=${options.fadeInOffset}` });
+    $chartDivs.title.animate({ opacity : 1, left: `+=${options.fadeInOffset}` });
+    for( let $label of $chartDivs.yAxisLabels ) {
       $label.animate({ opacity : 1, left: `+=${options.fadeInOffset}` });
     }
-    for( let $label of $xAxisLabelDivs ) {
+    for( let $label of $chartDivs.xAxisLabels ) {
       $label.animate({ opacity : 1, left: `+=${options.fadeInOffset}` });
     }
 
@@ -304,21 +280,59 @@ const drawBarChart = function (data, options, element, debug = false) {
   ***********************************************/
 };
 
-//Oh god, what am I doing. This is a recursive function. I wrote a recursive function to help me draw a chart. Oh god. Why.
-const animateYStepDivs = function (yDivArray, dimensions, i, d1) {
-  if (i < yDivArray.length) {
-    dimensions.yOffset += dimensions.height;
-    yDivArray[i+1] ? yDivArray[i+1].css("top", dimensions.yOffset) : null;
-    yDivArray[i].animate({ top : dimensions.yOffset, opacity : 1 }, (500/yDivArray.length), "swing", function () { animateYStepDivs(yDivArray, dimensions, i+1, d1) });
-  } else {
-    return d1.resolve();
+/********************************************************
+Creates all chart divs and returns an object containing them.
+********************************************************/
+const generateChartDivs = function (data, options, yAxisStepSize) {
+  let $divs = { };
+  $divs["container"] = $("<div>", {"class" : "chart-container", "style" : `width: ${options.width}; height: ${options.height}`});
+  $divs["title"] = $("<div>", {"class" : "title-container", "style" : `color : ${options.titleColor}; font-family : ${options.titleFont}; font-size:${options.titleFontSize}; padding:${options.titlePadding}`}).text(`${options.title}`);
+  $divs["xAxis"] = $("<div>", {"class" : "x-axis", "style" : `padding: ${options.axisPadding}`}).text(`${options.xLabel}`);
+  $divs["yAxis"] = $("<div>", {"class" : "y-axis", "style" : `padding: ${options.axisPadding}`}).text(`${options.yLabel}`);
+  $divs["yAxisLabels"] = [];
+  $divs["yAxisSteps"] = [];
+  for (i = options.yDivs; i >= 0; i--) {
+    $divs["yAxisLabels"].push($("<div>", {"class" : "y-axis-label", "style" : "text-align: center; padding-right: 5;"}).text(`${yAxisStepSize*i}`));
   }
+  for (i = 0; i < options.yDivs; i++) {
+    $divs["yAxisSteps"].push($("<div>", {"class" : "y-axis-step", "style" : `border-style: solid none none none; border-width: 1px; z-index: -${i}`}));
+  }
+  $divs["xAxisLabels"] = [];
+  for (let bar of data) {
+    $divs["xAxisLabels"].push($("<div>", {"class" : "x-axis-label", "style" : `margin-top: 5px; background-color: ${bar.labelColor || "none"}`}).text(`${bar.label}`));
+  }
+  $divs["innerChart"] = $("<div>", {"style" : `z-index: 1; border-style: none none solid solid; border-width: ${options.axisLineWidth}; padding-left: ${options.innerChartPadding}; padding-right: ${options.innerChartPadding}`});
+  //Note that here, we create all the bar divs and also a nested div to hold the value of the bar.
+  $divs["bars"] = [];
+  for (let bar of data) {
+    let currentBar = []
+    for (let i = 0; i < bar.values.length; i++) {
+      currentBar.push($("<div>", {"class" : "data-bar",
+        "style" : `background-color: ${bar.barColors[i] || bar.barColors[0]}; align-items: ${options.barValueAlignment}; border-style: solid solid none; border-width: ${options.barBorder}`
+      }));
+      currentBar[currentBar.length - 1].append($("<div>", {"class" : "data-bar-value"}).text(`${options.hideBarValues ? "" : bar.values[i]}`));
+    }
+    $divs["bars"].push(currentBar);
+  }
+
+  return $divs;
 }
 
-//Set or dimensions and offset of the input element.
-//The dimensions{} input can be a full set of dimensions or a single value from the dimensions.
-//At least, I'm pretty sure that should work. TODO: delete this line if it works.
-const setDimensionsAndOffset = function ({ $element, dimensions, animation = false }) {
+/********************************************************
+Set the dimensions of all divs.
+********************************************************/
+const initializeDimensions = function () {
+  let dimensions = {};
+
+  return dimensions;
+}
+
+/********************************************************
+Set the dimensions and offset of the input element.
+The dimensions{} input can be a full set of dimensions or a single value from the dimensions.
+At least, I'm pretty sure that should work. TODO: delete this line if it works.
+********************************************************/
+const setDimensionsAndOffset = function ({ $element, dimensions }) {
   //Check for nonexistent or empty $element and dimensions inputs.
   if (!$element) {
     console.log(Error('No $element given to setDimensionsAndOffset'));
@@ -332,22 +346,29 @@ const setDimensionsAndOffset = function ({ $element, dimensions, animation = fal
     console.log(Error('Empty dimensions object given to setDimensionsAndOffset'));
     return false;
   }
-  if (animation) {
-    dimensions["xOffset"] ? $element.animate({ "left" : dimensions["xOffset"]}) : null;
-    dimensions["yOffset"] ? $element.animate({ "top" : dimensions["yOffset"]}) : null;
-    dimensions["bottom"] ? $element.animate({ "bottom" : dimensions["bottom"]}) : null;
-    dimensions["width"] ? $element.animate({ "width" : dimensions["width"]}) : null;
-    dimensions["height"] ? $element.animate({ "height" : dimensions["height"] }) : null;
-
-  } else {
     dimensions["xOffset"] ? $element.css("left", dimensions["xOffset"]) : null;
     dimensions["bottom"] ? $element.css({ "bottom" : dimensions["bottom"]}) : null;
     dimensions["yOffset"] ? $element.css("top", dimensions["yOffset"]) : null;
     dimensions["width"] ? $element.outerWidth(dimensions["width"]) : null;
     dimensions["height"] ? $element.outerHeight(dimensions["height"]) : null;
+}
+
+/********************************************************
+//Recursive helper function to animate the y step divs in a sequential cascade from the top of the chart.
+********************************************************/
+const animateYStepDivs = function (yDivArray, dimensions, i, d1) {
+  if (i < yDivArray.length) {
+    dimensions.yOffset += dimensions.height;
+    yDivArray[i+1] ? yDivArray[i+1].css("top", dimensions.yOffset) : null;
+    yDivArray[i].animate({ top : dimensions.yOffset, opacity : 1 }, (500/yDivArray.length), "swing", function () { animateYStepDivs(yDivArray, dimensions, i+1, d1) });
+  } else {
+    return d1.resolve();
   }
 }
 
+/********************************************************
+//Helper function to find the height of the largest bar (or set of bar segments)
+********************************************************/
 const findMaxVal = function(data, debug = false) {
   let maxVal = 0;
   //For every bar in the chart, find its sum and compare it to the previous maxVal. Save the new maxVal if our new one is higher.
@@ -360,6 +381,9 @@ const findMaxVal = function(data, debug = false) {
   return maxVal;
 };
 
+/********************************************************
+//Helper function to find the widest label of the Y axis.
+********************************************************/
 const findYLabelMaxWidth = function(yLabels, debug = false) {
   let maxWidth = 0;
   for (let label of yLabels) {
@@ -369,7 +393,10 @@ const findYLabelMaxWidth = function(yLabels, debug = false) {
   return maxWidth;
 };
 
-//Helper function to find a nice-ish number for the step size of the chart, based on the maximum value of the chart and the number of division lines ("steps") you want.
+/********************************************************
+//Helper function to find a nice-ish number for the step size of the chart,
+//based on the maximum value of the chart and the number of division lines ("steps") you want.
+********************************************************/
 const findStepSize = function (maxVal, numSteps, debug = false) {
   //Start by finding the rough size of the steps
   let stepSize = maxVal / numSteps;
