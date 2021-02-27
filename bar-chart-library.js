@@ -4,7 +4,7 @@ $(document).ready(function() {
   let options = {
     width: 600,
     height: 500,
-    yDivs: 10,
+    yDivs: 6,
     barSpacing: 30
   }
 
@@ -145,9 +145,6 @@ const drawBarChart = function (data, options, element, debug = false) {
   $chartContainerDiv.children().animate({opacity : "0"}, 0);
   element.append($chartContainerDiv);
 
-  //Give all divs a dashed border if we're in debug mode.
-  //debug ? $( "div" ).css({"border": "1px black dashed"}) : null;
-
   //Now let's work on sizing the divs.
   //First, calculate some values that will be used multiple times later
   const maxYLabelWidth = findYLabelMaxWidth($yAxisLabelDivs, debug);
@@ -165,7 +162,7 @@ const drawBarChart = function (data, options, element, debug = false) {
     "width" : $chartContainerDiv.innerWidth() - yAxisAndLabelWidth,
     "height" : null
   };
-  const innerChartDimensions = {"xOffset" : xAxisDimensions.xOffset - options.fadeInOffset,
+  const innerChartDimensions = {"xOffset" : xAxisDimensions.xOffset,
     "yOffset" : null,
     "width" : xAxisDimensions.width,
     "height" : xAxisDimensions.yOffset - $xAxisLabelDivs[0].outerHeight()
@@ -180,7 +177,7 @@ const drawBarChart = function (data, options, element, debug = false) {
   "width" : maxYLabelWidth,
   "height" : null
   };
-  const yAxisDivDimensions = { "xOffset" : innerChartDimensions.xOffset + options.fadeInOffset,
+  const yAxisDivDimensions = { "xOffset" : innerChartDimensions.xOffset,
   "yOffset" : -1 * (innerChartDimensions.height - options.axisLineWidth) / options.yDivs,
   "width" : innerChartDimensions.width,
   "height" : (innerChartDimensions.height - options.axisLineWidth) / options.yDivs
@@ -200,6 +197,14 @@ const drawBarChart = function (data, options, element, debug = false) {
   "width" : barDimensions.width + options.barSpacing,
   "height" : null
   };
+
+  //One final position adjustment: everything that's going to fade in from the left needs to be scooted to the left by the proper amount.
+  //The bars themselves don't need to be scooted, since they're contained inside the inner chart div.
+  titleDimensions.xOffset -= options.fadeInOffset;
+  innerChartDimensions.xOffset -= options.fadeInOffset;
+  yAxisDimensions.xOffset -= options.fadeInOffset;
+  yAxisLabelDimensions.xOffset -= options.fadeInOffset;
+  xAxisLabelDimensions.xOffset -= options.fadeInOffset;
 
   //Positioning/animation order:
   //Inner chart appears fades in from left and "curtains" down
@@ -231,8 +236,22 @@ const drawBarChart = function (data, options, element, debug = false) {
   //Now we can animate them into their final positions!
   //First the inner chart (with the axis lines).
   //When it's complete, it calls the recursive animateYStepDivs function to animate the background sequentially.
+  let animatingYDivs = $.Deferred();
   $innerChartDiv.animate({ opacity : 1, left : `+=${options.fadeInOffset}` }, 400, function () {
-    animateYStepDivs($yAxisStepDivs, yAxisDivDimensions, 0) });
+    animateYStepDivs($yAxisStepDivs, yAxisDivDimensions, 0, animatingYDivs);
+  } );
+  $.when( animatingYDivs ).done( function() {
+    $titleDiv.animate({ opacity : 1, left: `+=${options.fadeInOffset}` });
+    $yAxisDiv.animate({ opacity : 1, left: `+=${options.fadeInOffset}` });
+    $xAxisDiv.animate({ opacity : 1, left: `+=${options.fadeInOffset}` });
+    for( let $label of $yAxisLabelDivs ) {
+      $label.animate({ opacity : 1, left: `+=${options.fadeInOffset}` });
+    }
+    for( let $label of $xAxisLabelDivs ) {
+      $label.animate({ opacity : 1, left: `+=${options.fadeInOffset}` });
+    }
+
+  });
   //Now the y axis steps...
 /*   for (let i = 0; i < $yAxisStepDivs.length; i++) {
     yAxisDivDimensions.yOffset += yAxisDivDimensions.height;
@@ -283,24 +302,21 @@ const drawBarChart = function (data, options, element, debug = false) {
     xAxisLabelDimensions.xOffset += barDimensions.width + barSpacing;
   }
   ***********************************************/
-
-  //This implementation builds the bars from the bottom up. It relies on bottom:0 being set in barchart.css.
-  //TODO: move this into its own function.
 };
 
 //Oh god, what am I doing. This is a recursive function. I wrote a recursive function to help me draw a chart. Oh god. Why.
-
-const animateYStepDivs = function (yDivArray, dimensions, i) {
+const animateYStepDivs = function (yDivArray, dimensions, i, d1) {
   if (i < yDivArray.length) {
     dimensions.yOffset += dimensions.height;
     yDivArray[i+1] ? yDivArray[i+1].css("top", dimensions.yOffset) : null;
-    yDivArray[i].animate({ top : dimensions.yOffset, opacity : 1 }, (750/yDivArray.length), "swing", function () { animateYStepDivs(yDivArray, dimensions, i+1) });
+    yDivArray[i].animate({ top : dimensions.yOffset, opacity : 1 }, (500/yDivArray.length), "swing", function () { animateYStepDivs(yDivArray, dimensions, i+1, d1) });
+  } else {
+    return d1.resolve();
   }
 }
 
-//Set or animate the dimensions and offset of the input element.
+//Set or dimensions and offset of the input element.
 //The dimensions{} input can be a full set of dimensions or a single value from the dimensions.
-//This allows us to (for example) animate the X value for a set of elements, then animate the height of those elements, without re-calculating the dimensions.
 //At least, I'm pretty sure that should work. TODO: delete this line if it works.
 const setDimensionsAndOffset = function ({ $element, dimensions, animation = false }) {
   //Check for nonexistent or empty $element and dimensions inputs.
