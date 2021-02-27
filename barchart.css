@@ -25,7 +25,6 @@
 
 .chart-container .y-axis-step {
   background-color: whitesmoke;
-  z-index: -1;
 }
 
 .chart-container .data-bar {
