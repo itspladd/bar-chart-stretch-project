@@ -6,11 +6,11 @@ $(document).ready(function() {
     height: 500,
     yDivs: 4,
     barSpacing: 30,
-    animation: false,
+    animation: true,
   }
 
   let data = [
-    {values: [10, 10, 10, 10, 10, 10, 10, 10, 10, 10], label: "Barts", barColors: ["green"], labelColor: "none"},
+    {values: [25, 25, 25, 25], label: "Barts", barColors: ["green"], labelColor: "none"},
     {values: [5], label: "Carts", barColors: ["blue", "red"], labelColor:"none"},
     {values: [10, 50], label: "Parts", barColors: ["grey"], labelColor: "none"},
     {values: [40, 60], label: "Blarts", barColors: ["red"], labelColor: "none"},
@@ -291,6 +291,7 @@ const adjustDimensionsForAnimation = function (dimensionsObject, chartOptions) {
   for (let label of dimensionsObject.xAxisLabels) {
     label.xOffset -= chartOptions.fadeInOffset;
   }
+
   //Since the y axis steps cascade in from the top, start their offset above the actual chart area.
   for (let div of dimensionsObject.yAxisDivs) {
     div.yOffset = -1 * (dimensionsObject.innerChart.height - chartOptions.axisLineWidth) / chartOptions.yDivs;
@@ -298,9 +299,11 @@ const adjustDimensionsForAnimation = function (dimensionsObject, chartOptions) {
 
   for (let i = 0; i < dimensionsObject.bars.length; i++) {
     for (let j = 0; j < dimensionsObject.bars[i].length; j++) {
+      //For all the bars, we set a new key: targetHeight, which is the value they'll animate towards.
+      //We have to compensate for the border manually, since we can't animate an "outerHeight" value.
+      //We set the height to 0 afterwards, so that the bars will start at nothing and grow towards their proper height.
       dimensionsObject.bars[i][j]["targetHeight"] = dimensionsObject.bars[i][j].height - chartOptions.barBorder;
       dimensionsObject.bars[i][j].height = 0;
-      j !== 0 ? dimensionsObject.bars[i][j].bottom += chartOptions.barBorder : null;
     }
   }
 }
@@ -348,27 +351,36 @@ Animates the chart.
 const animateChart = function ($chartDivs, dimensions, options) {
 
   //Set up some flags to help our animations run sequentially.
+  let animatingInnerChart = $.Deferred();
   let animatingYDivs = $.Deferred();
   let animatingCentralDivs = $.Deferred();
-  let animatingBar = $.Deferred();
+  let animatingBars = $.Deferred();
+  $( ".data-bar").css("opacity", 0);
+  $( ".data-bar-value").css("opacity", 0);
   $chartDivs.innerChart.animate({ opacity : 1, left : `+=${options.fadeInOffset}` }, 400, function () {
-    console.log(`Animating y step divs...`);
-    animateYStepDivs($chartDivs.yAxisSteps, dimensions.yAxisDivs, 0, animatingYDivs);
+    animatingInnerChart.resolve();
   } );
+  $.when( animatingInnerChart ).done( function() {
+    console.log(`Animating y step divs...`);
+    animateYStepDivs($chartDivs.yAxisSteps, dimensions.yAxisDivs, animatingYDivs, 0);
+  });
   $.when( animatingYDivs ).done( function() {
-    $chartDivs.yAxis.animate({ opacity : 1, left: `+=${options.fadeInOffset}` }, function () { animatingCentralDivs.resolve() });
-    $chartDivs.xAxis.animate({ opacity : 1, left: `+=${options.fadeInOffset}` });
-    $chartDivs.title.animate({ opacity : 1, left: `+=${options.fadeInOffset}` });
     for( let $label of $chartDivs.yAxisLabels ) {
       $label.animate({ opacity : 1, left: `+=${options.fadeInOffset}` });
     }
     for( let $label of $chartDivs.xAxisLabels ) {
       $label.animate({ opacity : 1, left: `+=${options.fadeInOffset}` });
     }
+    $chartDivs.xAxis.animate({ opacity : 1, left: `+=${options.fadeInOffset}` });
+    $chartDivs.yAxis.animate({ opacity : 1, left: `+=${options.fadeInOffset}` });
+    $chartDivs.title.animate({ opacity : 1, left: `+=${options.fadeInOffset}` }, function () { animatingCentralDivs.resolve() });
   });
   $.when( animatingCentralDivs ).done( function() {
-    //Animate the bars
+    animateBars ($chartDivs.bars, dimensions.bars, animatingBars);
   });
+  $.when( animatingBars ).done( function() {
+
+  })
 }
 
 /********************************************************
@@ -398,18 +410,43 @@ const setElementDimensions = function ($element, dimensions) {
 }
 
 /********************************************************
-//Recursive helper function to animate the y step divs in a sequential cascade from the top of the chart.
+Recursive helper function to animate the y step divs in a sequential cascade from the top of the chart.
 ********************************************************/
-const animateYStepDivs = function (yDivArray, dimensionsArray, i, d1) {
-  if (i < yDivArray.length) {
+const animateYStepDivs = function ($yDivArray, dimensionsArray, completionFlag, i = 0) {
+  if (i < $yDivArray.length) {$
     dimensionsArray[i].yOffset = (i * dimensionsArray[i].height);
-    yDivArray[i+1] ? yDivArray[i+1].css("top", dimensionsArray[i].yOffset) : null;
-    yDivArray[i].animate({ top : dimensionsArray[i].yOffset, opacity : 1 }, (500/yDivArray.length), "swing", function () { animateYStepDivs(yDivArray, dimensionsArray, i+1, d1) });
+    $yDivArray[i+1] ? $yDivArray[i+1].css("top", dimensionsArray[i].yOffset) : null;
+    $yDivArray[i].animate({ top : dimensionsArray[i].yOffset, opacity : 1 },
+      (500/$yDivArray.length),
+      "swing",
+      function () { animateYStepDivs($yDivArray, dimensionsArray, completionFlag, i+1) }
+    );
   } else {
-    return d1.resolve();
+    return completionFlag.resolve();
   }
 }
 
+/********************************************************
+Recursive helper function to animate the bars to their target height.
+********************************************************/
+const animateBars = function ($barsArray, barDimensionsArray, completionFlag, i = 0, j = 0) {
+  if (i < $barsArray.length) {
+    console.log(`animating bar ${i}`);
+    if (j < $barsArray[i].length) {
+      console.log(`animating segment ${j} of bar ${i}`);
+      $barsArray[i][j].animate({ opacity : 1 }, 0);
+      $barsArray[i][j].animate({ height: barDimensionsArray[i][j].targetHeight },
+        400/$barsArray[i].length,
+        function () { animateBars($barsArray, barDimensionsArray, completionFlag, i, j+1) }
+      );
+    } else {
+      animateBars($barsArray, barDimensionsArray, completionFlag, i+1);
+    }
+
+  } else {
+    return completionFlag.resolve();
+  }
+}
 /********************************************************
 //Helper function to find the height of the largest bar (or set of bar segments)
 ********************************************************/
