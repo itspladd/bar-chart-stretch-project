@@ -1,10 +1,10 @@
 $(document).ready(function() {
-  let debugMode = true;
+  let debugMode = false;
 
   let options = {
     width: 600,
     height: 500,
-    yDivs: 4,
+    yDivs: 10,
     barSpacing: 30,
     animation: true,
   }
@@ -79,7 +79,6 @@ const drawBarChart = function (data, options, element, debug = false) {
 
   const minWidth = 500;
   const minHeight = 500;
-  const barAlignmentOptionStrings = {"top" : "flex-start", "middle" : "center", "bottom" : "flex-end"};
 
   //Set any blank options to a default value, or coerce any out-of-bounds options to their minimum.
   options["width"] = options["width"] > minWidth ? options["width"] : minWidth;
@@ -87,7 +86,7 @@ const drawBarChart = function (data, options, element, debug = false) {
   options["barSpacing"] = options["barSpacing"] || 10;
   options["barBorder"] = options["barBorder"] || 2;
   options["hideBarValues"] = options["hideBarValues"]; //Automatically defaults to "false" if options["hideBarValues"] doesn't exist.
-  options["barValueAlignment"] = options["barValueAlignment"] ? barAlignmentOptionStrings[options["barValueAlignment"]] : "center";
+  options["barValueAlignment"] = options["barValueAlignment"] || "center";
   options["xLabel"] = options["xLabel"] || "X Axis";
   options["yLabel"] = options["yLabel"] || "Y Axis";
   options["axisFont"] = options["axisFont"] || "Helvetica";
@@ -95,7 +94,7 @@ const drawBarChart = function (data, options, element, debug = false) {
   options["title"] = options["title"] || "My Untitled Chart";
   options["titleFont"] = options["titleFont"] || "Arial";
   options["titleFontSize"] = options["titleFontSize"] || 30;
-  options["titleColor"] = options["titleCOlor"] || "black";
+  options["titleColor"] = options["titleColor"] || "black";
   options["animation"] = options["animation"] === undefined ? true : options["animation"]; //Automatically defaults to "true" if options["noAnimation"] doesn't exist.
 
   //Style variables that aren't included in the options input - adding them to the options object so it's easier to pass them down to helper functions later
@@ -105,10 +104,8 @@ const drawBarChart = function (data, options, element, debug = false) {
   options["axisLineWidth"] = options["axisLineWidth"] || 3;
   options["innerChartPadding"] = options["innerChartPadding"] || (.05 * options.width);
   options["fadeInOffset"] = options["fadeInOffset"] || 10;
-
   //Find the step size based on the biggest data bar and the number of divs.
   const yAxisStepSize = findStepSize(findMaxVal(data, debug), options.yDivs, debug);
-
   //Generate all the component divs of the chart.
   const $chartDivs = generateChartDivs(data, options, yAxisStepSize);
 
