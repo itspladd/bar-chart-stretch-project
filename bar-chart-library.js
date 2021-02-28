@@ -1,5 +1,5 @@
 $(document).ready(function() {
-  let debugMode = true; //TODO: Make a better debug mode, possibly a box that can be checked on the main page, and then you click a button to reload charts instead of refreshing
+  let debugMode = true;
 
   let options = {
     width: 600,
@@ -19,11 +19,13 @@ $(document).ready(function() {
     {values: [100], label: "Darts", barColors: ["grey"], labelColor: "none"},
     {values: [100], label: "Warts", barColors: ["red", "purple"], labelColor: "none"}
   ];
-  drawBarChart(data,options,$("#barChartBox"), debugMode);
 
-  $( "button" ).click(function( event ) {
-
+  let $chart = $( ".make-chart" ).click(function( event ) {
+    $("#barChartBox").empty();
+    options["animation"] = $( "#animationToggle:checked" ).val() ? true : false;
+    return drawBarChart(data,options,$("#barChartBox"), debugMode);
   });
+
   //Uncomment this line if you suspect that the entire JS file isn't being loaded. Excluded from debug mode because I don't feel like closing the box every time I refresh the page.
   //alert("bar-chart-library.js loaded!");
 });
@@ -125,6 +127,9 @@ const drawBarChart = function (data, options, element, debug = false) {
 
   //Now we can animate them into their final positions!
   options.animation ? animateChart($chartDivs, dimensions, options) : null;
+
+  //Send all the divs back to the caller function so we can delete the chart later.
+  return $chartDivs;
 };
 
 /********************************************************
@@ -161,7 +166,7 @@ const generateChartDivs = function (data, options, yAxisStepSize) {
           border-style: solid solid none;
           border-width: ${options.barBorder}`
       }));
-      currentBar[currentBar.length - 1].append($("<div>", {"class" : "data-bar-value"}).text(`${options.hideBarValues ? "" : bar.values[i]}`));
+      currentBar[i].append($("<div>", {"class" : "data-bar-value"}).text(`${options.hideBarValues ? "" : bar.values[i]}`));
     }
     $divs["bars"].push(currentBar);
   }
@@ -430,14 +435,15 @@ const animateYStepDivs = function ($yDivArray, dimensionsArray, completionFlag, 
 Recursive helper function to animate the bars to their target height.
 ********************************************************/
 const animateBars = function ($barsArray, barDimensionsArray, completionFlag, i = 0, j = 0) {
+  const animationTime = 2000; //Total time it should take to draw the chart, in ms.
   if (i < $barsArray.length) {
-    console.log(`animating bar ${i}`);
     if (j < $barsArray[i].length) {
-      console.log(`animating segment ${j} of bar ${i}`);
       $barsArray[i][j].animate({ opacity : 1 }, 0);
       $barsArray[i][j].animate({ height: barDimensionsArray[i][j].targetHeight },
-        400/$barsArray[i].length,
-        function () { animateBars($barsArray, barDimensionsArray, completionFlag, i, j+1) }
+        animationTime/$barsArray.length/$barsArray[i].length, //Time it should take to draw this one portion of the chart.
+        function () {
+          $barsArray[i][j].children().animate({opacity : "1"})
+          animateBars($barsArray, barDimensionsArray, completionFlag, i, j+1) }
       );
     } else {
       animateBars($barsArray, barDimensionsArray, completionFlag, i+1);
