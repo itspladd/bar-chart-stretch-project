@@ -7,6 +7,9 @@ $(document).ready(function() {
     yDivs: 10,
     barSpacing: 30,
     animation: true,
+    xLabel: "Type of Art",
+    yLabel: "Amount to Eat",
+    title: "Art"
   }
 
   let data = [
@@ -20,7 +23,7 @@ $(document).ready(function() {
     {values: [100], label: "Warts", barColors: ["red", "purple"], labelColor: "none"}
   ];
 
-  let $chart = $( ".make-chart" ).click(function( event ) {
+  $( ".make-chart" ).click(function( event ) {
     $("#barChartBox").empty();
     options["animation"] = $( "#animationToggle:checked" ).val() ? true : false;
     return drawBarChart(data,options,$("#barChartBox"), debugMode);
@@ -77,35 +80,12 @@ const drawBarChart = function (data, options, element, debug = false) {
     console.log("Error with element");
   }
 
-  const minWidth = 500;
-  const minHeight = 500;
 
-  //Set any blank options to a default value, or coerce any out-of-bounds options to their minimum.
-  options["width"] = options["width"] > minWidth ? options["width"] : minWidth;
-  options["height"] = options["height"] > minHeight ? options["height"] : minHeight;
-  options["barSpacing"] = options["barSpacing"] || 10;
-  options["barBorder"] = options["barBorder"] || 2;
-  options["hideBarValues"] = options["hideBarValues"]; //Automatically defaults to "false" if options["hideBarValues"] doesn't exist.
-  options["barValueAlignment"] = options["barValueAlignment"] || "center";
-  options["xLabel"] = options["xLabel"] || "X Axis";
-  options["yLabel"] = options["yLabel"] || "Y Axis";
-  options["axisFont"] = options["axisFont"] || "Helvetica";
-  options["yDivs"] = options["yDivs"] || 4;
-  options["title"] = options["title"] || "My Untitled Chart";
-  options["titleFont"] = options["titleFont"] || "Arial";
-  options["titleFontSize"] = options["titleFontSize"] || 30;
-  options["titleColor"] = options["titleColor"] || "black";
-  options["animation"] = options["animation"] === undefined ? true : options["animation"]; //Automatically defaults to "true" if options["noAnimation"] doesn't exist.
+  options = initializeOptions(options);
 
-  //Style variables that aren't included in the options input - adding them to the options object so it's easier to pass them down to helper functions later
-  options["titlePadding"] = options["titlePadding"] || 10;
-  options["axisFontSize"] = options["axisFontSize"] || 16;
-  options["axisPadding"] = options["axisPadding"] || 10;
-  options["axisLineWidth"] = options["axisLineWidth"] || 3;
-  options["innerChartPadding"] = options["innerChartPadding"] || (.05 * options.width);
-  options["fadeInOffset"] = options["fadeInOffset"] || 10;
   //Find the step size based on the biggest data bar and the number of divs.
   const yAxisStepSize = findStepSize(findMaxVal(data, debug), options.yDivs, debug);
+
   //Generate all the component divs of the chart.
   const $chartDivs = generateChartDivs(data, options, yAxisStepSize);
 
@@ -128,6 +108,53 @@ const drawBarChart = function (data, options, element, debug = false) {
   //Send all the divs back to the caller function so we can delete the chart later.
   return $chartDivs;
 };
+
+/********************************************************
+Generates semi-random data for the chart.
+********************************************************/
+const generateRandomData = function () {
+
+}
+
+/********************************************************
+Generates semi-random options for the chart.
+********************************************************/
+
+/********************************************************
+Initializes options to default values if need be.
+********************************************************/
+const initializeOptions = function (opts) {
+
+  const minWidth = 500;
+  const minHeight = 500;
+
+  //Set any blank options to a default value, or coerce any out-of-bounds options to their minimum.
+  opts["width"] = opts["width"] > minWidth ? opts["width"] : minWidth;
+  opts["height"] = opts["height"] > minHeight ? opts["height"] : minHeight;
+  opts["barSpacing"] = opts["barSpacing"] || 10;
+  opts["barBorder"] = opts["barBorder"] || 2;
+  opts["hideBarValues"] = opts["hideBarValues"]; //Automatically defaults to "false" if opts["hideBarValues"] doesn't exist.
+  opts["barValueAlignment"] = opts["barValueAlignment"] || "center";
+  opts["xLabel"] = opts["xLabel"] || "X Axis";
+  opts["yLabel"] = opts["yLabel"] || "Y Axis";
+  opts["axisFont"] = opts["axisFont"] || "Helvetica";
+  opts["yDivs"] = opts["yDivs"] || 4;
+  opts["title"] = opts["title"] || "My Untitled Chart";
+  opts["titleFont"] = opts["titleFont"] || "Arial";
+  opts["titleFontSize"] = opts["titleFontSize"] || 30;
+  opts["titleColor"] = opts["titleColor"] || "black";
+  opts["animation"] = opts["animation"] === undefined ? true : opts["animation"]; //Automatically defaults to "true" if opts["noAnimation"] doesn't exist.
+
+  //Style variables that aren't included in the opts input - adding them to the opts object so it's easier to pass them down to helper functions later
+  opts["titlePadding"] = opts["titlePadding"] || 10;
+  opts["axisFontSize"] = opts["axisFontSize"] || 16;
+  opts["axisPadding"] = opts["axisPadding"] || 10;
+  opts["axisLineWidth"] = opts["axisLineWidth"] || 3;
+  opts["innerChartPadding"] = opts["innerChartPadding"] || (.05 * opts.width);
+  opts["fadeInOffset"] = opts["fadeInOffset"] || 10;
+
+  return opts;
+}
 
 /********************************************************
 Creates all chart divs and returns an object containing them.
@@ -450,6 +477,7 @@ const animateBars = function ($barsArray, barDimensionsArray, completionFlag, i 
     return completionFlag.resolve();
   }
 }
+
 /********************************************************
 //Helper function to find the height of the largest bar (or set of bar segments)
 ********************************************************/
