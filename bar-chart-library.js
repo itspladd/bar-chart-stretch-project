@@ -29,6 +29,13 @@ $(document).ready(function() {
     return drawBarChart(data,options,$("#barChartBox"), debugMode);
   });
 
+  $( ".generate-random" ).click(function( event ) {
+    data = generateRandomData();
+    $("#barChartBox").empty();
+    options["animation"] = $( "#animationToggle:checked" ).val() ? true : false;
+    return drawBarChart(data,options,$("#barChartBox"), debugMode);
+  });
+
   //Uncomment this line if you suspect that the entire JS file isn't being loaded. Excluded from debug mode because I don't feel like closing the box every time I refresh the page.
   //alert("bar-chart-library.js loaded!");
 });
@@ -113,12 +120,46 @@ const drawBarChart = function (data, options, element, debug = false) {
 Generates semi-random data for the chart.
 ********************************************************/
 const generateRandomData = function () {
+  const maxBars = 8;
+  const maxSegments = 5;
+  const maxValue = 1000;
 
+  let bars = Math.ceil(Math.random() * maxBars);
+  let segments = Math.ceil(Math.random() * maxSegments);
+  const randomData = [];
+  const randomOptions = {};
+
+  console.log(`Max value: ${maxValue}. ${bars} bars with ${segments} segments each`);
+  //Generate random labels and colors.
+  let dataLabels = ["random label"];
+
+  //Insert each bar object into the data array and calculate values for each bar.
+  for (let i = 0; i < bars; i++) {
+    //Set the amount of bar we have to work with Make sure we don't end up with a number smaller than the number of segments!
+    let barValue = Math.ceil(Math.random() * (maxValue - segments)) + segments;
+    let segmentsLeft = segments
+    console.log(`Bar ${i} value: ${barValue}`);
+
+    randomData.push({
+      values: [],
+      label: dataLabels[0],
+      barColors: ["green"],
+      labelColor: `Blep ${i}`
+    });
+    for (let j = 0; j < segments; j++) {
+      let segmentValue = Math.ceil(Math.random() * (barValue - (segmentsLeft)));
+
+      console.log(`Segment value: ${segmentValue}`);
+      barValue -= segmentValue;
+      segmentsLeft--;
+      console.log(`bar value remaining: ${barValue}`);
+      randomData[i].values.push(segmentValue);
+    }
+    console.log("---------");
+  }
+
+  return randomData;
 }
-
-/********************************************************
-Generates semi-random options for the chart.
-********************************************************/
 
 /********************************************************
 Initializes options to default values if need be.
@@ -168,7 +209,7 @@ const generateChartDivs = function (data, options, yAxisStepSize) {
   $divs["yAxisLabels"] = [];
   $divs["yAxisSteps"] = [];
   for (i = options.yDivs; i >= 0; i--) {
-    $divs["yAxisLabels"].push($("<div>", {"class" : "y-axis-label", "style" : "text-align: center; padding-right: 5;"}).text(`${yAxisStepSize*i}`));
+    $divs["yAxisLabels"].push($("<div>", {"class" : "y-axis-label", "style" : "text-align: center; padding-right: 5;"}).text(`${(yAxisStepSize*i).toFixed(2)}`));
   }
   for (i = 0; i < options.yDivs; i++) {
     $divs["yAxisSteps"].push($("<div>", {"class" : "y-axis-step", "style" : `border-style: solid none none none; border-width: 1px; z-index: -${i}`}));
