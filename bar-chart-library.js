@@ -120,7 +120,7 @@ const drawBarChart = function (data, options, element, debug = false) {
 Generates semi-random data for the chart.
 ********************************************************/
 const generateRandomData = function () {
-  const maxBars = 8;
+  const maxBars = 7;
   const maxSegments = 5;
   const maxValue = 1000;
 
@@ -135,25 +135,33 @@ const generateRandomData = function () {
 
   //Insert each bar object into the data array and calculate values for each bar.
   for (let i = 0; i < bars; i++) {
-    //Set the amount of bar we have to work with Make sure we don't end up with a number smaller than the number of segments!
-    let barValue = Math.ceil(Math.random() * (maxValue - segments)) + segments;
+    //Set the amount of bar we have to work with. Make sure we don't end up with a number smaller than the number of segments!
+    let minBarValue = maxValue / 3;
+    let barValue = getRandomIntInclusive(minBarValue, maxValue);
     let segmentsLeft = segments
     console.log(`Bar ${i} value: ${barValue}`);
 
     randomData.push({
       values: [],
-      label: dataLabels[0],
+      label: `Blep ${i}`,
       barColors: ["green"],
-      labelColor: `Blep ${i}`
     });
     for (let j = 0; j < segments; j++) {
-      let segmentValue = Math.ceil(Math.random() * (barValue - (segmentsLeft)));
+      let maxSegmentValue = barValue / 3;
+      let minSegmentValue = maxValue / 10;
+      console.log(`Value between ${minSegmentValue} and ${maxSegmentValue}`);
+      if(minSegmentValue > maxSegmentValue) {
+        minSegmentValue = maxSegmentValue;
+      } else if (maxSegmentValue !== 0) {
+        let segmentValue = getRandomIntInclusive(minSegmentValue, maxSegmentValue);
 
-      console.log(`Segment value: ${segmentValue}`);
-      barValue -= segmentValue;
-      segmentsLeft--;
-      console.log(`bar value remaining: ${barValue}`);
-      randomData[i].values.push(segmentValue);
+        console.log(`Segment value: ${segmentValue}`);
+        barValue -= segmentValue;
+        segmentsLeft--;
+        console.log(`bar value remaining: ${barValue}`);
+        randomData[i].values.push(segmentValue);
+      }
+
     }
     console.log("---------");
   }
@@ -401,18 +409,6 @@ const positionDivs = function (data, options, $chartDivs, dimensions) {
     }
     setElementDimensions($chartDivs.xAxisLabels[i], dimensions.xAxisLabels[i]);
   }
-
-
-
-/*   for (let i = 0; i < data.length; i++) {
-
-    dimensions.bars.bottom = 0;
-    for (let j = data[i].values.length - 1; j >= 0; j--) {
-      setElementDimensions($chartDivs.bars[i][j], { height : dimensions.bars.height, bottom : dimensions.bars.bottom });
-
-    }
-  }
- */
 }
 
 /********************************************************
@@ -455,8 +451,6 @@ const animateChart = function ($chartDivs, dimensions, options) {
 
 /********************************************************
 Set the dimensions and offset of the input element.
-The dimensions{} input can be a full set of dimensions or a single value from the dimensions.
-At least, I'm pretty sure that should work. TODO: delete this line if it works.
 ********************************************************/
 const setElementDimensions = function ($element, dimensions) {
   //Check for nonexistent or empty $element and dimensions inputs.
@@ -501,16 +495,20 @@ Recursive helper function to animate the bars to their target height.
 ********************************************************/
 const animateBars = function ($barsArray, barDimensionsArray, completionFlag, i = 0, j = 0) {
   const animationTime = 2000; //Total time it should take to draw the chart, in ms.
+  // Iterates through each bar.
   if (i < $barsArray.length) {
+    // Iterates through each segment in each bar, making it visible and then animating it to its target height.
     if (j < $barsArray[i].length) {
       $barsArray[i][j].animate({ opacity : 1 }, 0);
       $barsArray[i][j].animate({ height: barDimensionsArray[i][j].targetHeight },
         animationTime/$barsArray.length/$barsArray[i].length, //Time it should take to draw this one portion of the chart.
+        //Callback function: set the opacity of the value within this segment to 1, then animateBars for the next segment.
         function () {
           $barsArray[i][j].children().animate({opacity : "1"})
           animateBars($barsArray, barDimensionsArray, completionFlag, i, j+1) }
       );
     } else {
+      //Once the j iterator has reached every segment in the bar, call animateBars for the next bar.
       animateBars($barsArray, barDimensionsArray, completionFlag, i+1);
     }
 
@@ -575,9 +573,14 @@ const findStepSize = function (maxVal, numSteps, debug = false) {
   return adjustedStepSize;
 };
 
-const valueToBar = function () {
-
-};
+/********************************************************
+//Helper function to generate a random integer between two values.
+********************************************************/
+const getRandomIntInclusive = function(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min) + min);
+}
 
 //Placeholder function to check the options object for invalid values.
 const optionsValid = function (options) {
